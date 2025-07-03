@@ -38,10 +38,10 @@ app.get("/record", (req, res) => {
             margin: 0;
             padding: 0;
             background: transparent;
-            color: #df60ff; /* Neon green */
+            color: #b64ed1; /* Neon green */
             font-size: 36px;
             font-family: 'Orbitron', sans-serif;
-            text-shadow: 0 0 5px #39ff14, 0 0 10px #39ff14, 0 0 20px #39ff14;
+            text-shadow: 0 0 5px #b64ed1, 0 0 10px #b64ed1, 0 0 20px #b64ed1;
             display: flex;
             justify-content: center;
             align-items: center;
