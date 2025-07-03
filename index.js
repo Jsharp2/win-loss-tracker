@@ -29,6 +29,7 @@ app.get("/reset", (req, res) => {
 
 app.get("/record", (req, res) => {
   res.send(`
+    <!DOCTYPE html>
     <html>
       <head>
         <meta http-equiv="refresh" content="5">
@@ -39,8 +40,11 @@ app.get("/record", (req, res) => {
             background: transparent;
             color: white;
             font-size: 32px;
-            font-family: sans-serif;
-            text-align: center;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
           }
         </style>
       </head>
@@ -50,6 +54,7 @@ app.get("/record", (req, res) => {
     </html>
   `);
 });
+
 
 
 
