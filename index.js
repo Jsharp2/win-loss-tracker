@@ -38,7 +38,7 @@ app.get("/record", (req, res) => {
             margin: 0;
             padding: 0;
             background: transparent;
-            color: white;
+            color: red;
             font-size: 32px;
             font-family: 'Arial', sans-serif;
             display: flex;
