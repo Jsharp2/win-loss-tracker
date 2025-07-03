@@ -28,8 +28,15 @@ app.get("/reset", (req, res) => {
 });
 
 app.get("/record", (req, res) => {
-  res.send(`Current record: ${wins}W - ${losses}L`);
+  res.send(`
+    <html>
+      <body style="margin:0; padding:0; background:transparent; color:white; font-size:32px; font-family:sans-serif;">
+        <div>Record: ${wins}W - ${losses}L</div>
+      </body>
+    </html>
+  `);
 });
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
