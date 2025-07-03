@@ -13,10 +13,12 @@ app.get("/", (req, res) => {
 
 app.get("/addwin", (req, res) => {
   wins++;
+  res.send(`Reset. Wins: ${wins} | Losses: ${losses}`);
 });
 
 app.get("/addloss", (req, res) => {
   losses++;
+  res.send(`Reset. Wins: ${wins} | Losses: ${losses}`);
 });
 
 app.get("/reset", (req, res) => {
