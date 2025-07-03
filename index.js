@@ -38,7 +38,7 @@ app.get("/record", (req, res) => {
             margin: 0;
             padding: 0;
             background: transparent;
-            color: #39ff14; /* Neon green */
+            color: #df60ff; /* Neon green */
             font-size: 36px;
             font-family: 'Orbitron', sans-serif;
             text-shadow: 0 0 5px #39ff14, 0 0 10px #39ff14, 0 0 20px #39ff14;
