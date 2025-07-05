@@ -29,25 +29,30 @@ app.get("/reset", (req, res) => {
 
 app.get("/record", (req, res) => {
   if (req.query.raw === "1") {
-    // Nightbot/text version
+    // Plain text for Nightbot
     res.send(`Record: ${wins}W - ${losses}L`);
   } else {
-    // OBS/browser HTML version
+    // OBS Styled Overlay
+    const color = "#a68fe2"; // 💡 Change this one variable to change all colors
     res.send(`
       <!DOCTYPE html>
       <html>
         <head>
           <meta http-equiv="refresh" content="5">
-          <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Merienda:wght@700&display=swap" rel="stylesheet">
           <style>
             body {
               margin: 0;
               padding: 0;
               background: transparent;
-              color: #a68fe2;
+              color: ${color};
               font-size: 36px;
-              font-family: 'Orbitron', sans-serif;
-              text-shadow: 0 0 5px #a68fe2, 0 0 10px #a68fe2, 0 0 20px #a68fe2;
+              font-family: 'Merienda', cursive;
+              text-shadow:
+                0 0 5px ${color},
+                0 0 10px ${color},
+                0 0 20px ${color},
+                0 0 40px ${color};
               display: flex;
               justify-content: center;
               align-items: center;
@@ -62,6 +67,7 @@ app.get("/record", (req, res) => {
     `);
   }
 });
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
