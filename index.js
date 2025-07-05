@@ -44,10 +44,10 @@ app.get("/record", (req, res) => {
               margin: 0;
               padding: 0;
               background: transparent;
-              color: #ff00cc;
+              color: #a68fe2;
               font-size: 36px;
               font-family: 'Orbitron', sans-serif;
-              text-shadow: 0 0 5px #ff00cc, 0 0 10px #ff00cc, 0 0 20px #ff00cc;
+              text-shadow: 0 0 5px #a68fe2, 0 0 10px #a68fe2, 0 0 20px #a68fe2;
               display: flex;
               justify-content: center;
               align-items: center;
