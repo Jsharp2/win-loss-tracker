@@ -28,29 +28,40 @@ app.get("/reset", (req, res) => {
 });
 
 app.get("/record", (req, res) => {
-  res.send(`
-    <html>
-      <head>
-        <meta http-equiv="refresh" content="5">
-        <style>
-          body {
-            margin: 0;
-            padding: 0;
-            background: transparent;
-            color: white;
-            font-size: 32px;
-            font-family: sans-serif;
-            text-align: center;
-          }
-        </style>
-      </head>
-      <body>
-        Record: ${wins}W - ${losses}L
-      </body>
-    </html>
-  `);
+  if (req.query.raw === "1") {
+    // Nightbot/text version
+    res.send(`Record: ${wins}W - ${losses}L`);
+  } else {
+    // OBS/browser HTML version
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta http-equiv="refresh" content="5">
+          <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+          <style>
+            body {
+              margin: 0;
+              padding: 0;
+              background: transparent;
+              color: #ff00cc;
+              font-size: 36px;
+              font-family: 'Orbitron', sans-serif;
+              text-shadow: 0 0 5px #ff00cc, 0 0 10px #ff00cc, 0 0 20px #ff00cc;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              height: 100vh;
+            }
+          </style>
+        </head>
+        <body>
+          Record: ${wins}W - ${losses}L
+        </body>
+      </html>
+    `);
+  }
 });
-
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
