@@ -113,7 +113,6 @@ app.get("/resetDeath", (req, res) => {
   const data = getUserData(user);
   data.death = 0;
   saveRecords();
-  res.send(`Added one death for ${user}.`);
 });
 
 
