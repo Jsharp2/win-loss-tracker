@@ -106,6 +106,17 @@ app.get("/adddeath", (req, res) => {
   res.send(`Added one death for ${user}.`);
 });
 
+app.get("/resetDeath", (req, res) => {
+  const user = req.query.user;
+  if (!user) return res.send("Missing ?user=");
+
+  const data = getUserData(user);
+  data.death = 0;
+  saveRecords();
+  res.send(`Added one death for ${user}.`);
+});
+
+
 app.get("/showdeaths", (req, res) => {
   const user = req.query.user;
   const raw = req.query.raw === "1";
