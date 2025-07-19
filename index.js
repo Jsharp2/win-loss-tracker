@@ -25,7 +25,7 @@ function getUserData(user) {
     records[name] = {
       wins: 0,
       losses: 0,
-      deaths:0,
+      deaths: 0,
       color: "#ffffff",
       font: "Merienda"
     };
