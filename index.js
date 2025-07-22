@@ -1,7 +1,6 @@
 const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
-const path = require("path");
 
 const app = express();
 app.use(cors());
@@ -19,8 +18,8 @@ try {
 }
 
 // Utility function
-function getUserData(user) {
-  const name = user.toLowerCase();
+function getChannelData(channel) {
+  const name = channel.toLowerCase();
   if (!records[name]) {
     records[name] = {
       wins: 0,
@@ -40,142 +39,104 @@ function saveRecords() {
 
 // Add win
 app.get("/addwin", (req, res) => {
-  const user = req.query.user;
-  if (!user) return res.send("Missing ?user=");
+  const channel = req.query.channel?.toLowerCase();
+  if (!channel) return res.send("Missing ?channel=");
 
-  const data = getUserData(user);
+  const data = getChannelData(channel);
   data.wins++;
   saveRecords();
-  res.send(`Added win for ${user}. Wins: ${data.wins}, Losses: ${data.losses}`);
+
+  res.send(`Added win for ${channel}. Wins: ${data.wins}, Losses: ${data.losses}`);
 });
 
 // Add loss
 app.get("/addloss", (req, res) => {
-  const user = req.query.user;
-  if (!user) return res.send("Missing ?user=");
+  const channel = req.query.channel?.toLowerCase();
+  if (!channel) return res.send("Missing ?channel=");
 
-  const data = getUserData(user);
+  const data = getChannelData(channel);
   data.losses++;
   saveRecords();
-  res.send(`Added loss for ${user}. Wins: ${data.wins}, Losses: ${data.losses}`);
+
+  res.send(`Added loss for ${channel}. Wins: ${data.wins}, Losses: ${data.losses}`);
 });
 
-// Reset
-app.get("/reset", (req, res) => {
-  const user = req.query.user;
-  if (!user) return res.send("Missing ?user=");
+// Add death
+app.get("/adddeath", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  if (!channel) return res.send("Missing ?channel=");
 
-  const data = getUserData(user);
+  const data = getChannelData(channel);
+  data.death++;
+  saveRecords();
+
+  res.send(`Added one death for ${channel}. Total deaths: ${data.death}`);
+});
+
+// Reset record
+app.get("/reset", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  if (!channel) return res.send("Missing ?channel=");
+
+  const data = getChannelData(channel);
   data.wins = 0;
   data.losses = 0;
   saveRecords();
-  res.send(`Reset record for ${user}.`);
+
+  res.send(`${channel}'s record has been reset.`);
+});
+
+// Reset deaths
+app.get("/resetDeath", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  if (!channel) return res.send("Missing ?channel=");
+
+  const data = getChannelData(channel);
+  data.death = 0;
+  saveRecords();
+
+  res.send(`${channel}'s death counter has been reset.`);
 });
 
 // Set color
 app.get("/setcolor", (req, res) => {
-  const user = req.query.user;
+  const channel = req.query.channel?.toLowerCase();
   const color = req.query.color;
-  if (!user || !color) return res.send("Missing ?user= or ?color=");
+  if (!channel || !color) return res.send("Missing ?channel= or ?color=");
 
-  const data = getUserData(user);
+  const data = getChannelData(channel);
   data.color = color;
   saveRecords();
-  res.send(`Set color for ${user} to ${color}`);
+
+  res.send(`Set color for ${channel} to ${color}`);
 });
 
 // Set font
 app.get("/setfont", (req, res) => {
-  const user = req.query.user;
+  const channel = req.query.channel?.toLowerCase();
   const font = req.query.font;
-  if (!user || !font) return res.send("Missing ?user= or ?font=");
+  if (!channel || !font) return res.send("Missing ?channel= or ?font=");
 
-  const data = getUserData(user);
+  const data = getChannelData(channel);
   data.font = font;
   saveRecords();
-  res.send(`Set font for ${user} to ${font}`);
+
+  res.send(`Set font for ${channel} to ${font}`);
 });
 
-app.get("/adddeath", (req, res) => {
-  const user = req.query.user;
-  if (!user) return res.send("Missing ?user=");
-
-  const data = getUserData(user);
-  data.death++;
-  saveRecords();
-  res.send(`Added one death for ${user}.`);
-});
-
-app.get("/resetDeath", (req, res) => {
-  const user = req.query.user;
-  if (!user) return res.send("Missing ?user=");
-
-  const data = getUserData(user);
-  data.death = 0;
-  saveRecords();
-});
-
-
-app.get("/showdeaths", (req, res) => {
-  const user = req.query.user;
-  const raw = req.query.raw === "1";
-  if (!user) return res.send("Missing ?user=");
-
-  const data = getUserData(user);
-
-  if (raw) {
-    return res.send(`Deaths: ${data.death}`);
-  }
-
-  const safeFont = encodeURIComponent(data.font);
-
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8" />
-      <meta http-equiv="refresh" content="10">
-      <style>
-        body {
-          margin: 0;
-          padding: 0;
-          background-color: transparent;
-          font-size: 48px;
-          font-family: '${data.font}', sans-serif;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          height: 100vh;
-          color: ${data.color};
-          text-shadow:
-            0 0 5px ${data.color},
-            0 0 10px ${data.color},
-            0 0 20px ${data.color};
-        }
-      </style>
-      <link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
-    </head>
-    <body>
-      Deaths: ${data.death}
-    </body>
-    </html>
-  `);
-});
-
-// OBS overlay
+// Show record overlay
 app.get("/record", (req, res) => {
-  const user = req.query.user;
+  const channel = req.query.channel?.toLowerCase();
   const raw = req.query.raw === "1";
-  if (!user) return res.send("Missing ?user=");
+  if (!channel) return res.send("Missing ?channel=");
 
-  const data = getUserData(user);
+  const data = getChannelData(channel);
 
   if (raw) {
     return res.send(`Record: ${data.wins}W - ${data.losses}L`);
   }
 
   const safeFont = encodeURIComponent(data.font);
-
   res.send(`
     <!DOCTYPE html>
     <html>
@@ -209,7 +170,53 @@ app.get("/record", (req, res) => {
   `);
 });
 
-// Export records
+// Show death overlay
+app.get("/showdeaths", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  const raw = req.query.raw === "1";
+  if (!channel) return res.send("Missing ?channel=");
+
+  const data = getChannelData(channel);
+
+  if (raw) {
+    return res.send(`Deaths: ${data.death}`);
+  }
+
+  const safeFont = encodeURIComponent(data.font);
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8" />
+      <meta http-equiv="refresh" content="10">
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          background-color: transparent;
+          font-size: 48px;
+          font-family: '${data.font}', sans-serif;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          color: ${data.color};
+          text-shadow:
+            0 0 5px ${data.color},
+            0 0 10px ${data.color},
+            0 0 20px ${data.color};
+        }
+      </style>
+      <link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
+    </head>
+    <body>
+      Deaths: ${data.death}
+    </body>
+    </html>
+  `);
+});
+
+// Export data
 app.get("/export", (req, res) => {
   res.setHeader("Content-Disposition", "attachment; filename=records.json");
   res.setHeader("Content-Type", "application/json");
