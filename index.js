@@ -75,14 +75,20 @@ app.get("/adddeath", (req, res) => {
 
 app.get("/adddeaths", (req, res) => {
   const channel = req.query.channel?.toLowerCase();
-  const death = req.query.death;
-  if (!channel || !death) return res.send("Missing ?channel= or ?death=");
+  const deathParam = req.query.death;
+
+  if (!channel || !deathParam) return res.send("Missing ?channel= or ?death=");
+
+  const deathsToAdd = parseInt(deathParam, 10);
+  if (isNaN(deathsToAdd) || deathsToAdd < 0) {
+    return res.send("Invalid death count. Must be a non-negative number.");
+  }
 
   const data = getChannelData(channel);
-  data.death += death;
+  data.death += deathsToAdd;
   saveRecords();
 
-  res.send(`Add ${death} to ${channel}. New Total: ${data.death}.`);
+  res.send(`Added ${deathsToAdd} deaths to ${channel}. New Total: ${data.death}.`);
 });
 
 app.get("/setdeath", (req, res) => {
