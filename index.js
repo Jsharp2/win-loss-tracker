@@ -73,6 +73,20 @@ app.get("/adddeath", (req, res) => {
   res.send(`Added one death for ${channel}. Total deaths: ${data.death}`);
 });
 
+app.get("/adddeaths", (req, res) => {
+  res.send(`Added one death for ${channel}. Total deaths: ${data.death}`);
+
+  const channel = req.query.channel?.toLowerCase();
+  const deaths = req.query.death;
+  if (!channel || !deaths) return res.send("Missing ?channel= or ?deaths=");
+
+  const data = getChannelData(channel);
+  data.death += death;
+  saveRecords();
+
+  res.send(`Set death amount for ${channel} to ${data.death}`);
+});
+
 // Reset record
 app.get("/reset", (req, res) => {
   const channel = req.query.channel?.toLowerCase();
