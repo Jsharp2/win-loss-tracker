@@ -3,7 +3,7 @@
     "wins": 1,
     "losses": 0,
     "pokeloss": 0,
-    "runloss": 0,
+    "runloss": 1,
     "color": "#FF0000",
     "death": 1
   },
@@ -12,7 +12,7 @@
     "losses": 0,
     "death": 334,
     "pokeloss": 0,
-    "runloss": 0,
+    "runloss": 1,
     "color": "#880808",
     "font": "EB Garamond"
   },
@@ -21,7 +21,7 @@
     "losses": 0,
     "death": 0,
     "pokeloss": 0,
-    "runloss": 0,
+    "runloss": 1,
     "color": "#ffffff",
     "font": "Merienda"
   }
