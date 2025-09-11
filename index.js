@@ -24,6 +24,8 @@ function getChannelData(channel) {
     records[name] = {
       wins: 0,
       losses: 0,
+      nuzlock_Losses: 0,
+      nuzlock_Deaths 0,
       death: 0,
       color: "#ffffff",
       font: "Merienda"
@@ -139,6 +141,32 @@ app.get("/setcolor", (req, res) => {
   saveRecords();
 
   res.send(`Set color for ${channel} to ${color}`);
+});
+
+app.get("/nuzdeath", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  const deathParam = req.query.death;
+
+  if (!channel || !deathParam) return res.send("Missing ?channel= or ?death=");
+
+  const deathsToAdd = parseInt(deathParam, 10);
+  if (isNaN(deathsToAdd) || deathsToAdd < 0) {
+    return res.send("Invalid death count. Must be a non-negative number.");
+  }
+
+  const data = getChannelData(channel);
+  data.nuzlock_Deaths += deathsToAdd;
+  saveRecords();
+});
+
+app.get("/nuzloss", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  if (!channel) return res.send("Missing ?channel=");
+
+  const data = getChannelData(channel);
+  data.nuzlock_Deaths = 0;
+  data.nuzlock_Deaths += deathsToAdd;
+  saveRecords();
 });
 
 // Set font
