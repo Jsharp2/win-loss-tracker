@@ -204,7 +204,7 @@ app.get("/shownuzdeaths", (req, res) => {
       <link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
     </head>
     <body>
-      Record: ${data.pokeloss}
+      Graveyard: ${data.pokeloss}
     </body>
     </html>
   `);
@@ -250,7 +250,7 @@ app.get("/shownuzlosses", (req, res) => {
       <link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
     </head>
     <body>
-      Record: ${data.runloss}
+      Run: ${data.runloss}
     </body>
     </html>
   `);
