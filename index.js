@@ -24,8 +24,8 @@ function getChannelData(channel) {
     records[name] = {
       wins: 0,
       losses: 0,
-      nuzlock_Losses: 0,
-      nuzlock_Deaths: 0,
+      pokeloss: 0,
+      runloss: 0,
       death: 0,
       color: "#ffffff",
       font: "Merienda"
@@ -143,31 +143,117 @@ app.get("/setcolor", (req, res) => {
   res.send(`Set color for ${channel} to ${color}`);
 });
 
-app.get("/nuzdeath", (req, res) => {
-  const channel = req.query.channel?.toLowerCase();
-  const deathParam = req.query.death;
-
-  if (!channel || !deathParam) return res.send("Missing ?channel= or ?death=");
-
-  const deathsToAdd = parseInt(deathParam, 10);
-  if (isNaN(deathsToAdd) || deathsToAdd < 0) {
-    return res.send("Invalid death count. Must be a non-negative number.");
-  }
-
-  const data = getChannelData(channel);
-  data.nuzlock_Deaths += deathsToAdd;
-  saveRecords();
-});
 
 app.get("/nuzloss", (req, res) => {
   const channel = req.query.channel?.toLowerCase();
   if (!channel) return res.send("Missing ?channel=");
 
   const data = getChannelData(channel);
-  data.nuzlock_Deaths = 0;
-  data.nuzlock_Deaths += deathsToAdd;
+  data.runloss += deathsToAdd;
   saveRecords();
 });
+
+app.get("/nuzdeaths", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  if (!channel) return res.send("Missing ?channel=");
+
+  const data = getChannelData(channel);
+  data.pokeloss += deathsToAdd;
+  saveRecords();
+});
+
+// Show record overlay
+app.get("/shownuzdeaths", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  const raw = req.query.raw === "1";
+  if (!channel) return res.send("Missing ?channel=");
+
+  const data = getChannelData(channel);
+
+  if (raw) {
+    return res.send(`L Plus Ratio`);
+  }
+
+  const safeFont = encodeURIComponent(data.font);
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8" />
+      <meta http-equiv="refresh" content="10">
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          background-color: transparent;
+          font-size: 48px;
+          font-family: '${data.font}', sans-serif;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          color: ${data.color};
+          text-shadow:
+            0 0 5px ${data.color},
+            0 0 10px ${data.color},
+            0 0 20px ${data.color};
+        }
+      </style>
+      <link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
+    </head>
+    <body>
+      Record: ${data.pokeloss}
+    </body>
+    </html>
+  `);
+});
+
+// Show record overlay
+app.get("/shownuzlosses", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  const raw = req.query.raw === "1";
+  if (!channel) return res.send("Missing ?channel=");
+
+  const data = getChannelData(channel);
+
+  if (raw) {
+    return res.send(`L Plus Ratio`);
+  }
+
+  const safeFont = encodeURIComponent(data.font);
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8" />
+      <meta http-equiv="refresh" content="10">
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          background-color: transparent;
+          font-size: 48px;
+          font-family: '${data.font}', sans-serif;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          color: ${data.color};
+          text-shadow:
+            0 0 5px ${data.color},
+            0 0 10px ${data.color},
+            0 0 20px ${data.color};
+        }
+      </style>
+      <link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
+    </head>
+    <body>
+      Record: ${data.runloss}
+    </body>
+    </html>
+  `);
+});
+
 
 // Set font
 app.get("/setfont", (req, res) => {
