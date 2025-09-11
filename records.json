@@ -1,0 +1,28 @@
+{
+  "smallduckenergy": {
+    "wins": 1,
+    "losses": 0,
+    "pokeloss": 0,
+    "runloss": 0,
+    "color": "#FF0000",
+    "death": 1
+  },
+  "nearlycelextial": {
+    "wins": 0,
+    "losses": 0,
+    "death": 334,
+    "pokeloss": 0,
+    "runloss": 0,
+    "color": "#880808",
+    "font": "EB Garamond"
+  },
+  "saveraeclipse": {
+    "wins": 0,
+    "losses": 0,
+    "death": 0,
+    "pokeloss": 0,
+    "runloss": 0,
+    "color": "#ffffff",
+    "font": "Merienda"
+  }
+}
