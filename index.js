@@ -149,6 +149,7 @@ app.get("/nuzloss", (req, res) => {
   if (!channel) return res.send("Missing ?channel=");
 
   const data = getChannelData(channel);
+
   data.runloss += deathsToAdd;
   data.pokeloss = 0;
   saveRecords();
@@ -159,7 +160,7 @@ app.get("/nuzdeaths", (req, res) => {
   if (!channel) return res.send("Missing ?channel=");
 
   const data = getChannelData(channel);
-  data.pokeloss += deathsToAdd;
+  data.pokeloss += 1;
   saveRecords();
 });
 
