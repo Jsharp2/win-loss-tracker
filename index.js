@@ -150,6 +150,7 @@ app.get("/nuzloss", (req, res) => {
 
   const data = getChannelData(channel);
   data.runloss += deathsToAdd;
+  data.pokeloss = 0;
   saveRecords();
 });
 
