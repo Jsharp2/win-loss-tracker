@@ -25,7 +25,7 @@ function getChannelData(channel) {
       wins: 0,
       losses: 0,
       nuzlock_Losses: 0,
-      nuzlock_Deaths 0,
+      nuzlock_Deaths: 0,
       death: 0,
       color: "#ffffff",
       font: "Merienda"
