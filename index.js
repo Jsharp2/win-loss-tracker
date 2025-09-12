@@ -153,6 +153,8 @@ app.get("/nuzloss", (req, res) => {
   data.runloss += 1;
   data.pokeloss = 0;
   saveRecords();
+
+  res.send(`Run Loss. F in Chat`);
 });
 
 app.get("/nuzdeaths", (req, res) => {
@@ -162,6 +164,8 @@ app.get("/nuzdeaths", (req, res) => {
   const data = getChannelData(channel);
   data.pokeloss += 1;
   saveRecords();
+
+  res.send(`RIP Buddy. o7`);
 });
 
 // Show record overlay
