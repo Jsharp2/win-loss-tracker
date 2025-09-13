@@ -159,7 +159,7 @@ app.get("/nuzloss", (req, res) => {
 
 app.get("/nuzdeaths", (req, res) => {
   const channel = req.query.channel?.toLowerCase();
-  const deadPoke = req.query.death;
+  const deadPoke = req.query.name;
   if (!channel) return res.send("Missing ?channel=");
 
   const data = getChannelData(channel);
