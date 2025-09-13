@@ -159,13 +159,14 @@ app.get("/nuzloss", (req, res) => {
 
 app.get("/nuzdeaths", (req, res) => {
   const channel = req.query.channel?.toLowerCase();
+  const deadPoke = req.query.death;
   if (!channel) return res.send("Missing ?channel=");
 
   const data = getChannelData(channel);
   data.pokeloss += 1;
   saveRecords();
 
-  res.send(`RIP Buddy. o7`);
+  res.send(`RIP ${deadPoke}. o7`);
 });
 
 // Show record overlay
