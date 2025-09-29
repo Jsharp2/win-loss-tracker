@@ -131,6 +131,18 @@ app.get("/reset", (req, res) => {
   res.send(`${channel}'s record has been reset.`);
 });
 
+// Reset knives
+app.get("/reset", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  if (!channel) return res.send("Missing ?channel=");
+
+  const data = getChannelData(channel);
+  data.knives = 0;
+  saveRecords();
+
+  res.send(`${channel}'s knife kills reset.`);
+});
+
 // Reset deaths
 app.get("/resetDeath", (req, res) => {
   const channel = req.query.channel?.toLowerCase();
