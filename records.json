@@ -1,12 +1,13 @@
 {
   "smallduckenergy": {
-    "wins": 1,
+    "wins": 0,
     "losses": 0,
-    "pokeloss": 0,
+    "death": 633,
+    "pokeloss": 3,
     "runloss": 1,
-    "color": "#FF0000",
-    "death": 1,
     "knives": 0,
+    "color": "#a68fe2",
+    "font": "Merienda"
   },
   "nearlycelextial": {
     "wins": 0,
@@ -21,11 +22,11 @@
   "saveraeclipse": {
     "wins": 0,
     "losses": 0,
-    "death": 0,
-    "pokeloss": 0,
+    "death": 633,
+    "pokeloss": 3,
     "runloss": 1,
     "knives": 0,
-    "color": "#ffffff",
+    "color": "#a68fe2",
     "font": "Merienda"
   }
 }
