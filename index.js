@@ -70,10 +70,10 @@ app.get("/addknife", (req, res) => {
   if (!channel) return res.send("Missing ?channel=");
 
   const data = getChannelData(channel);
-  data.knife++;
+  data.knives++;
   saveRecords();
 
-  res.send(`${channel} has gotten:  ${data.knife} knife kills`);
+  res.send(`${channel} has gotten:  ${data.knives} knife kills`);
 });
 
 // Add death
