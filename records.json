@@ -5,14 +5,16 @@
     "pokeloss": 0,
     "runloss": 1,
     "color": "#FF0000",
-    "death": 1
+    "death": 1,
+    "knives": 0,
   },
   "nearlycelextial": {
     "wins": 0,
     "losses": 0,
-    "death": 334,
+    "death": 633,
     "pokeloss": 3,
     "runloss": 1,
+    "knives": 0,
     "color": "#a68fe2",
     "font": "Merienda"
   },
@@ -22,6 +24,7 @@
     "death": 0,
     "pokeloss": 0,
     "runloss": 1,
+    "knives": 0,
     "color": "#ffffff",
     "font": "Merienda"
   }
