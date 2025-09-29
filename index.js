@@ -73,7 +73,7 @@ app.get("/addknife", (req, res) => {
   data.knife++;
   saveRecords();
 
-  res.send(`${channel} has gotten:  ${data.wins} knife Kills`);
+  res.send(`${channel} has gotten:  ${data.knife} knife kills`);
 });
 
 // Add death
