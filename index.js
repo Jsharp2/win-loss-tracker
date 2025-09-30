@@ -119,7 +119,7 @@ app.get("/setdeath", (req, res) => {
 });
 
 // Reset record
-app.get("/reset", (req, res) => {
+app.get("/knifereset", (req, res) => {
   const channel = req.query.channel?.toLowerCase();
   if (!channel) return res.send("Missing ?channel=");
 
