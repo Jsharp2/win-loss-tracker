@@ -122,13 +122,13 @@ app.get("/setdeath", (req, res) => {
 app.get("/setknife", (req, res) => {
   const channel = req.query.channel?.toLowerCase();
   const knife = req.query.death;
-  if (!channel || !death) return res.send("Missing ?channel= or ?death=");
+  if (!channel || !knife) return res.send("Missing ?channel= or ?death=");
 
   const data = getChannelData(channel);
   data.knives = knife;
   saveRecords();
 
-  res.send(`Set deaths for ${channel} to ${knife}`);
+  res.send(`Set knives for ${channel} to ${knife}`);
 });
 
 // Reset record
