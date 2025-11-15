@@ -118,6 +118,19 @@ app.get("/setdeath", (req, res) => {
   res.send(`Set deaths for ${channel} to ${death}`);
 });
 
+//Sets knives
+app.get("/setknife", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  const knife = req.query.death;
+  if (!channel || !death) return res.send("Missing ?channel= or ?death=");
+
+  const data = getChannelData(channel);
+  data.knives = knife;
+  saveRecords();
+
+  res.send(`Set deaths for ${channel} to ${knife}`);
+});
+
 // Reset record
 app.get("/reset", (req, res) => {
   const channel = req.query.channel?.toLowerCase();
