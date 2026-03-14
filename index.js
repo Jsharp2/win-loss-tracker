@@ -98,13 +98,12 @@ app.get("/addBadRez", (req, res) => {
 // Add Good Rezs
 app.get("/addGoodRezs", (req, res) => {
   const channel = req.query.channel?.toLowerCase();
+  const death = req.query.death;
   if (!channel) return res.send("Missing ?channel=");
 
   const data = getChannelData(channel);
-
-  const rezsToAdd = parseInt(deathParam, 10);
   
-  data.goodRez += rezsToAdd;
+  data.goodRez += death;
   data.percent = Math.round((data.goodRez / (data.goodRez + data.badRez)) * 10000) / 100;
   saveRecords();
 
@@ -114,12 +113,12 @@ app.get("/addGoodRezs", (req, res) => {
 // Add Bad Rezs
 app.get("/addBadRezs", (req, res) => {
   const channel = req.query.channel?.toLowerCase();
+  const death = req.query.death;
   if (!channel) return res.send("Missing ?channel=");
 
   const data = getChannelData(channel);
 
-  const rezsToAdd = parseInt(deathParam, 10);
-  data.badRez += rezsToAdd;
+  data.badRez += death;
   data.percent = Math.round((data.goodRez / (data.goodRez + data.badRez)) * 10000) / 100;
   saveRecords();
 
