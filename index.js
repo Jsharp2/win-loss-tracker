@@ -87,7 +87,7 @@ app.get("/addBadRez", (req, res) => {
 
   const data = getChannelData(channel);
   data.badRez++;
-  data.percent = Math.round((data.goodRez / (data.goodRez + data.badRez)) * 10000) / 100;
+  data.percent = data.goodRez / (data.goodRez + data.badRez);
   saveRecords();
 
   res.send(`Added a bad rez for ${channel}. Good Rez: ${data.goodRez}, Bad Rez: ${data.badRez}. Percent: ${data.percent}`);
@@ -388,7 +388,7 @@ app.get("/record", (req, res) => {
   `);
 });
 
-// Show rez percent overlay
+// Show rez  overlay
 app.get("/showrezper", (req, res) => {
   const channel = req.query.channel?.toLowerCase();
   const raw = req.query.raw === "1";
@@ -428,7 +428,7 @@ app.get("/showrezper", (req, res) => {
       <link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
     </head>
     <body>
-      Rez Percent: ${data.percent}%
+      Rez : ${data.percent}%
     </body>
     </html>
   `);
