@@ -492,7 +492,7 @@ app.get("/showrezper", (req, res) => {
       <link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
     </head>
     <body>
-      ${goodRez} / ${badRez} / ${percentText}
+      ${data.goodRez} / ${data.badRez} / ${percentText}
     </body>
     </html>
   `);
