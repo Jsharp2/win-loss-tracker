@@ -113,9 +113,14 @@ app.get("/addGoodRezs", (req, res) => {
 // Add Bad Rezs
 app.get("/addBadRezs", (req, res) => {
   const channel = req.query.channel?.toLowerCase();
-  const death = req.query.death;
-  if (!channel) return res.send("Missing ?channel=");
+  const badrezs = req.query.death;
 
+  if (!channel || !badrezs) return res.send("Missing ?channel= or ?death=");
+
+  const deathsToAdd = parseInt(deathParam, 10);
+  if (isNaN(deathsToAdd) || deathsToAdd < 0) {
+    return res.send("Invalid death count. Must be a non-negative number.");
+  }
   const data = getChannelData(channel);
 
   data.badRez += death;
