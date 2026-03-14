@@ -96,7 +96,7 @@ app.get("/addBadRez", (req, res) => {
 
 
 // Add Good Rezs
-app.get("/addGoodRezs", (req, res) => {
+app.get("/setGoodRezs", (req, res) => {
   const channel = req.query.channel?.toLowerCase();
   const deathParam = req.query.death;
 
@@ -108,15 +108,15 @@ app.get("/addGoodRezs", (req, res) => {
   }
 
   const data = getChannelData(channel);
-  data.goodRez += deathsToAdd;
+  data.goodRez = deathsToAdd;
   data.percent = Math.round((data.goodRez / (data.goodRez + data.badRez)) * 10000) / 100;
   saveRecords();
 
-  res.send(`Added ${deathsToAdd} good rezs for ${channel}. Good Rez: ${data.goodRez}, Bad Rez: ${data.badRez}. Percent: ${data.percent}`);
+  res.send(`Set good rezs for ${channel} to ${deathsToAdd}. Good Rez: ${data.goodRez}, Bad Rez: ${data.badRez}. Percent: ${data.percent}`);
 });
 
 // Add Bad Rezs
-app.get("/addBadRezs", (req, res) => {
+app.get("/setBadRezs", (req, res) => {
   const channel = req.query.channel?.toLowerCase();
   const deathParam = req.query.death;
 
@@ -128,11 +128,11 @@ app.get("/addBadRezs", (req, res) => {
   }
 
   const data = getChannelData(channel);
-  data.badRez += deathsToAdd;
+  data.badRez = deathsToAdd;
   data.percent = Math.round((data.goodRez / (data.goodRez + data.badRez)) * 10000) / 100;
   saveRecords();
 
-  res.send(`Added ${deathsToAdd} bad rezs for ${channel}. Good Rez: ${data.goodRez}, Bad Rez: ${data.badRez}. Percent: ${data.percent}`);
+  res.send(`Set bad rezs for ${channel} to  ${deathsToAdd}. Good Rez: ${data.goodRez}, Bad Rez: ${data.badRez}. Percent: ${data.percent}`);
 });
 
 app.get("/resetRez", (req, res) => {
