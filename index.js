@@ -32,7 +32,7 @@ function getChannelData(channel) {
       font: "Merienda",
       goodRez: 0,
       badRez: 0,
-      percent: .0,
+      percent: 0,
     };
   }
   return records[name];
@@ -77,7 +77,7 @@ app.get("/addGoodRez", (req, res) => {
   data.percent = Math.round((data.goodRez / (data.goodRez + data.badRez)) * 10000) / 100;
   saveRecords();
 
-  res.send(`Added a good rez for ${channel}. Good Rez: ${data.goodRez}, Bad Rez: ${data.badRez}. Percent: ${data.percent}.toFixed(2)`);
+  res.send(`Added a good rez for ${channel}. Good Rez: ${data.goodRez}, Bad Rez: ${data.badRez}. Percent: ${data.percent}`);
 });
 
 // Add Bad Rez
@@ -90,7 +90,7 @@ app.get("/addBadRez", (req, res) => {
   data.percent = Math.round((data.goodRez / (data.goodRez + data.badRez)) * 10000) / 100;
   saveRecords();
 
-  res.send(`Added a bad rez for ${channel}. Good Rez: ${data.goodRez}, Bad Rez: ${data.badRez}. Percent: ${data.percent}.toFixed(2)`);
+  res.send(`Added a bad rez for ${channel}. Good Rez: ${data.goodRez}, Bad Rez: ${data.badRez}. Percent: ${data.percent}`);
 });
 
 // Add knife
@@ -428,7 +428,7 @@ app.get("/showrezper", (req, res) => {
       <link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
     </head>
     <body>
-      Rez Percent: Perfect%
+      Rez Percent: ${data.percent}%
     </body>
     </html>
   `);
