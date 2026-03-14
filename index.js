@@ -98,12 +98,17 @@ app.get("/addBadRez", (req, res) => {
 // Add Good Rezs
 app.get("/addGoodRezs", (req, res) => {
   const channel = req.query.channel?.toLowerCase();
-  const death = req.query.death;
-  if (!channel) return res.send("Missing ?channel=");
+  const deathParam = req.query.death;
+
+  if (!channel || !deathParam) return res.send("Missing ?channel= or ?death=");
+
+  const deathsToAdd = parseInt(deathParam, 10);
+  if (isNaN(deathsToAdd) || deathsToAdd < 0) {
+    return res.send("Invalid death count. Must be a non-negative number.");
+  }
 
   const data = getChannelData(channel);
-  
-  data.goodRez += death;
+  data.goodRez += deathsToAdd;
   data.percent = Math.round((data.goodRez / (data.goodRez + data.badRez)) * 10000) / 100;
   saveRecords();
 
