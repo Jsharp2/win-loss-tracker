@@ -127,7 +127,7 @@ app.get("/addBadRezs", (req, res) => {
   data.percent = Math.round((data.goodRez / (data.goodRez + data.badRez)) * 10000) / 100;
   saveRecords();
 
-  res.send(`Added ${rezsToAdd} bad rezs for ${channel}. Good Rez: ${data.goodRez}, Bad Rez: ${data.badRez}. Percent: ${data.percent}`);
+  res.send(`Added ${deathsToAdd} bad rezs for ${channel}. Good Rez: ${data.goodRez}, Bad Rez: ${data.badRez}. Percent: ${data.percent}`);
 });
 
 app.get("/resetRez", (req, res) => {
