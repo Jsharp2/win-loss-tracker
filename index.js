@@ -74,10 +74,10 @@ app.get("/addGoodRez", (req, res) => {
 
   const data = getChannelData(channel);
   data.goodRez++;
-  data.percent = data.goodRez / (data.goodRez + data.badRez);
+  data.percent = Number((data.goodRez / (data.goodRez + data.badRez)).toFixed(2) * 100);
   saveRecords();
 
-  res.send(`Added a good rez for ${channel}. Good Rez: ${data.goodRez}, Bad Rez: ${data.badRez}. Percent: ${data.percent}`);
+  res.send(`Added a good rez for ${channel}. Good Rez: ${data.goodRez}, Bad Rez: ${data.badRez}. Percent: ${data.percent}.toFixed(2)`);
 });
 
 // Add Bad Rez
@@ -87,10 +87,10 @@ app.get("/addBadRez", (req, res) => {
 
   const data = getChannelData(channel);
   data.badRez++;
-  data.percent = data.goodRez / (data.goodRez + data.badRez);
+  data.percent = Number((data.goodRez / (data.goodRez + data.badRez)).toFixed(2) * 100);
   saveRecords();
 
-  res.send(`Added a bad rez for ${channel}. Good Rez: ${data.goodRez}, Bad Rez: ${data.badRez}. Percent: ${data.percent}`);
+  res.send(`Added a bad rez for ${channel}. Good Rez: ${data.goodRez}, Bad Rez: ${data.badRez}. Percent: ${data.percent}.toFixed(2)`);
 });
 
 // Add knife
