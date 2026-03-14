@@ -428,7 +428,7 @@ app.get("/showrezper", (req, res) => {
       <link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
     </head>
     <body>
-      Rez Percent: ${data.percent}%
+      Rez Percent: Perfect%
     </body>
     </html>
   `);
