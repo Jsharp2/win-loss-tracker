@@ -29,7 +29,10 @@ function getChannelData(channel) {
       death: 0,
       knives: 0,
       color: "#ffffff",
-      font: "Merienda"
+      font: "Merienda",
+      goodRez: 0,
+      badRez: 0,
+      percent: .0,
     };
   }
   return records[name];
@@ -62,6 +65,32 @@ app.get("/addloss", (req, res) => {
   saveRecords();
 
   res.send(`Added loss for ${channel}. Wins: ${data.wins}, Losses: ${data.losses}`);
+});
+
+// Add Good Rez
+app.get("/addGoodRez", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  if (!channel) return res.send("Missing ?channel=");
+
+  const data = getChannelData(channel);
+  data.goodRez++;
+  data.percent = ${data.goodRez) / (${data.goodRez} + ${data.badRez});
+  saveRecords();
+
+  res.send(`Added a good rez for ${channel}. Good Rez: ${data.goodRez}, Bad Rez: ${data.badRez}. Percent: ${data.percent}`);
+});
+
+// Add Bad Rez
+app.get("/addBadRez", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  if (!channel) return res.send("Missing ?channel=");
+
+  const data = getChannelData(channel);
+  data.badRez++;
+  data.percent = ${data.goodRez) / (${data.goodRez} + ${data.badRez});
+  saveRecords();
+
+  res.send(`Added a bad rez for ${channel}. Good Rez: ${data.goodRez}, Bad Rez: ${data.badRez}. Percent: ${data.percent}`);
 });
 
 // Add knife
@@ -354,6 +383,52 @@ app.get("/record", (req, res) => {
     </head>
     <body>
       Record: ${data.wins}W - ${data.losses}L
+    </body>
+    </html>
+  `);
+});
+
+// Show rez percent overlay
+app.get("/record", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  const raw = req.query.raw === "1";
+  if (!channel) return res.send("Missing ?channel=");
+
+  const data = getChannelData(channel);
+
+  if (raw) {
+    return res.send(`Record: ${data.wins}W - ${data.losses}L`);
+  }
+
+  const safeFont = encodeURIComponent(data.font);
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8" />
+      <meta http-equiv="refresh" content="10">
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          background-color: transparent;
+          font-size: 48px;
+          font-family: '${data.font}', sans-serif;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          color: ${data.color};
+          text-shadow:
+            0 0 5px ${data.color},
+            0 0 10px ${data.color},
+            0 0 20px ${data.color};
+        }
+      </style>
+      <link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
+    </head>
+    <body>
+      Rez Percent: ${data.percent}%
     </body>
     </html>
   `);
