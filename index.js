@@ -455,6 +455,10 @@ app.get("/showrezper", (req, res) => {
     return res.send(`Record: ${data.wins}W - ${data.losses}L`);
   }
 
+  let desc;
+
+  desc = `${data.goodRez} / ${data.badRez} / ${((data.goodRez / (data.goodRez + data.badRez)) * 100).toFixed(2)}%`;
+
   const safeFont = encodeURIComponent(data.font);
   res.send(`
     <!DOCTYPE html>
@@ -483,7 +487,7 @@ app.get("/showrezper", (req, res) => {
       <link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
     </head>
     <body>
-      `${data.goodRez} / ${data.badRez} / ${((data.goodRez / (data.goodRez + data.badRez)) * 100).toFixed(2)}%`;
+      ${desc}
     </body>
     </html>
   `);
