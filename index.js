@@ -459,11 +459,11 @@ app.get("/showrezper", (req, res) => {
 
 if (data.goodRez + data.badRez == 0)
 {
-  desc = `rez: ${data.goodRez} / ${data.badRez} / 0%`;
+  desc = `Rez: ${data.goodRez} / ${data.badRez} / 0%`;
 }
 else
 {
-  desc = `rez: ${data.goodRez} / ${data.badRez} / ${((data.goodRez / (data.goodRez + data.badRez)) * 100).toFixed(2)}%`;
+  desc = `Rez: ${data.goodRez} / ${data.badRez} / ${((data.goodRez / (data.goodRez + data.badRez)) * 100).toFixed(2)}%`;
 }
 
   const safeFont = encodeURIComponent(data.font);
