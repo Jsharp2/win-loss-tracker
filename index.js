@@ -93,6 +93,52 @@ app.get("/addBadRez", (req, res) => {
   res.send(`Added a bad rez for ${channel}. Good Rez: ${data.goodRez}, Bad Rez: ${data.badRez}. Percent: ${data.percent}`);
 });
 
+
+
+// Add Good Rezs
+app.get("/addGoodRezs", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  if (!channel) return res.send("Missing ?channel=");
+
+  const data = getChannelData(channel);
+
+  const rezsToAdd = parseInt(deathParam, 10);
+  
+  data.goodRez += rezsToAdd;
+  data.percent = Math.round((data.goodRez / (data.goodRez + data.badRez)) * 10000) / 100;
+  saveRecords();
+
+  res.send(`Added ${rezsToAdd} good rezs for ${channel}. Good Rez: ${data.goodRez}, Bad Rez: ${data.badRez}. Percent: ${data.percent}`);
+});
+
+// Add Bad Rezs
+app.get("/addBadRezs", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  if (!channel) return res.send("Missing ?channel=");
+
+  const data = getChannelData(channel);
+
+  const rezsToAdd = parseInt(deathParam, 10);
+  data.badRez += rezsToAdd;
+  data.percent = Math.round((data.goodRez / (data.goodRez + data.badRez)) * 10000) / 100;
+  saveRecords();
+
+  res.send(`Added ${rezsToAdd} bad rezs for ${channel}. Good Rez: ${data.goodRez}, Bad Rez: ${data.badRez}. Percent: ${data.percent}`);
+});
+
+app.get("/resetRez", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  if (!channel) return res.send("Missing ?channel=");
+
+  const data = getChannelData(channel);
+
+  data.badRez = 0;
+  data.goodRez = 0;
+  saveRecords();
+
+  res.send(`Rezs reset for ${channel}`);
+});
+
 // Add knife
 app.get("/addknife", (req, res) => {
   const channel = req.query.channel?.toLowerCase();
@@ -393,6 +439,11 @@ app.get("/showrezper", (req, res) => {
   const channel = req.query.channel?.toLowerCase();
   const raw = req.query.raw === "1";
   if (!channel) return res.send("Missing ?channel=");
+
+  if(data.goodRez + data.badRez == 0)
+  {
+    data.percent = "No Value";
+  }
 
   const data = getChannelData(channel);
 
