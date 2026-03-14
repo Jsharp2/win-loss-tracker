@@ -74,7 +74,7 @@ app.get("/addGoodRez", (req, res) => {
 
   const data = getChannelData(channel);
   data.goodRez++;
-  data.percent = data.goodRez / (data.goodRez} + data.badRez);
+  data.percent = data.goodRez / (data.goodRez + data.badRez);
   saveRecords();
 
   res.send(`Added a good rez for ${channel}. Good Rez: ${data.goodRez}, Bad Rez: ${data.badRez}. Percent: ${data.percent}`);
@@ -87,7 +87,7 @@ app.get("/addBadRez", (req, res) => {
 
   const data = getChannelData(channel);
   data.badRez++;
-  data.percent = data.goodRez / (data.goodRez} + data.badRez);
+  data.percent = data.goodRez / (data.goodRez + data.badRez);
   saveRecords();
 
   res.send(`Added a bad rez for ${channel}. Good Rez: ${data.goodRez}, Bad Rez: ${data.badRez}. Percent: ${data.percent}`);
