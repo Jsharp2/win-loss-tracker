@@ -440,12 +440,12 @@ app.get("/showrezper", (req, res) => {
   const raw = req.query.raw === "1";
   if (!channel) return res.send("Missing ?channel=");
 
-  if(data.goodRez + data.badRez == 0)
-  {
-    data.percent = "No Value";
-  }
-
   const data = getChannelData(channel);
+
+    if(data.goodRez + data.badRez == 0)
+    {
+      data.percent = "No Value";
+    }
 
   if (raw) {
     return res.send(`Record: ${data.wins}W - ${data.losses}L`);
