@@ -457,7 +457,7 @@ app.get("/showrezper", (req, res) => {
       percentText = "N/A";
   }   
   else {
-      percentText = ${data.goodRez} / ${data.badRez} / ((data.goodRez / (data.goodRez + data.badRez)) * 100).toFixed(2) + "%";
+      percentText = `${data.goodRez} / ${data.badRez} / ${((data.goodRez / (data.goodRez + data.badRez)) * 100).toFixed(2)}%`;
   }
 
   if (raw) {
