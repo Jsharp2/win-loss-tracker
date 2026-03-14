@@ -442,10 +442,14 @@ app.get("/showrezper", (req, res) => {
 
   const data = getChannelData(channel);
 
-    if(data.goodRez + data.badRez == 0)
-    {
-      data.percent = "No Value";
-    }
+    let percentText;
+
+  if ((data.goodRez + data.badRez) === 0) {
+      percentText = "N/A";
+  }   
+  else {
+      percentText = ((data.goodRez / (data.goodRez + data.badRez)) * 100).toFixed(2) + "%";
+  }
 
   if (raw) {
     return res.send(`Record: ${data.wins}W - ${data.losses}L`);
@@ -479,7 +483,7 @@ app.get("/showrezper", (req, res) => {
       <link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
     </head>
     <body>
-      Rez : ${data.percent}%
+      Rez : ${percentText}
     </body>
     </html>
   `);
