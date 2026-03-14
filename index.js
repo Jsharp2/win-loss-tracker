@@ -74,7 +74,7 @@ app.get("/addGoodRez", (req, res) => {
 
   const data = getChannelData(channel);
   data.goodRez++;
-  data.percent = (data.goodRez + data.badRez);
+  data.percent = Math.round((data.goodRez / (data.goodRez + data.badRez)) * 10000) / 100;
   saveRecords();
 
   res.send(`Added a good rez for ${channel}. Good Rez: ${data.goodRez}, Bad Rez: ${data.badRez}. Percent: ${data.percent}`);
