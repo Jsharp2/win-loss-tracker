@@ -9,8 +9,8 @@
     "color": "#a68fe2",
     "font": "Merienda",
     "goodRez": 0,
-    "badRez": "0",
-    "percent": ".0"
+    "badRez": 0,
+    "percent": 0
   },
   "nearlycelextial": {
     "wins": 0,
@@ -22,8 +22,8 @@
     "color": "#a68fe2",
     "font": "Merienda",
     "goodRez": 0,
-    "badRez": "0",
-    "percent": ".0"
+    "badRez": 0,
+    "percent": 0
   },
   "saveraeclipse": {
     "wins": 0,
@@ -35,7 +35,7 @@
     "color": "#b4325f",
     "font": "Merienda",
     "goodRez": 0,
-    "badRez": "0",
-    "percent": ".0"
+    "badRez": 0,
+    "percent": 0
   }
 }
