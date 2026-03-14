@@ -389,7 +389,7 @@ app.get("/record", (req, res) => {
 });
 
 // Show rez percent overlay
-app.get("/record", (req, res) => {
+app.get("/showrezper", (req, res) => {
   const channel = req.query.channel?.toLowerCase();
   const raw = req.query.raw === "1";
   if (!channel) return res.send("Missing ?channel=");
