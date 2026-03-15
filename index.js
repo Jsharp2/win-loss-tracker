@@ -701,7 +701,7 @@ app.get("/showRezPoll", (req, res) => {
 
       Was it a good rez?<br><br>
 
-      👍 Yes: ${poll.yes}<br>
+      <img src="https://static-cdn.jtvnw.net/emoticons/v2/emotesv2_b46b3c49a06d40918e39f87f20892cb7/default/dark/1.0" height= "48" Yes: ${poll.yes}<br>
       👎 No: ${poll.no}
 
     </body>
