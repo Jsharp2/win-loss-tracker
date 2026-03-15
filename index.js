@@ -682,6 +682,7 @@ app.get("/showRezPoll", (req, res) => {
           font-size: 48px;
           font-family: '${data.font}', sans-serif;
           display: flex;
+          flex-direction: column;
           justify-content: center;
           align-items: center;
           height: 100vh;
@@ -691,19 +692,39 @@ app.get("/showRezPoll", (req, res) => {
             0 0 10px ${data.color},
             0 0 20px ${data.color};
           text-align: center;
-          flex-direction: column;
         }
+
+        .voteRow {
+          display: flex;
+          align-items: center;
+          gap: 20px;
+          margin: 10px 0;
+        }
+
+        img {
+          height: 64px;   /* 👈 Change emote size here */
+          width: auto;
+        }
+
       </style>
 
       <link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
     </head>
+
     <body>
 
-      Was it a good rez?<br><br>
+      <div>Was it a good rez?</div>
 
-      <img src="https://static-cdn.jtvnw.net/emoticons/v2/emotesv2_4af923b4a6df4001b529141413990892/default/dark/1.0" height="48"> Yes: ${poll.yes}<br>
-      <img src="https://static-cdn.jtvnw.net/emoticons/v2/emotesv2_c4450bfb31ef45b8ab157ba099b37081/default/dark/1.0" height="48"> No: ${poll.no}<br>
-      
+      <div class="voteRow">
+        <img src="https://static-cdn.jtvnw.net/emoticons/v2/emotesv2_4af923b4a6df4001b529141413990892/default/dark/1.0"
+        <div>Yes: ${poll.yes}</div>
+      </div>
+
+      <div class="voteRow">
+        <img src="https://static-cdn.jtvnw.net/emoticons/v2/emotesv2_c4450bfb31ef45b8ab157ba099b37081/default/dark/1.0" height="48">
+        <div>No: ${poll.no}</div>
+      </div>
+
     </body>
     </html>
   `);
