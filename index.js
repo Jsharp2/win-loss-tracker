@@ -657,17 +657,23 @@ app.get("/export", (req, res) => {
 
 app.get("/showRezPoll", (req, res) => {
   const channel = req.query.channel?.toLowerCase();
+  if (!channel) return res.send("Missing ?channel=");
+
   const poll = activePolls[channel];
+  const data = getChannelData(channel);
 
   if (!poll || !poll.active) {
     return res.send("");
   }
 
+  const safeFont = encodeURIComponent(data.font);
+
   res.send(`
     <!DOCTYPE html>
     <html>
-    <meta charset="UTF-8" />
-      <meta http-equiv="refresh" content="10">
+    <head>
+      <meta charset="UTF-8" />
+      <meta http-equiv="refresh" content="2">
       <style>
         body {
           margin: 0;
@@ -684,14 +690,20 @@ app.get("/showRezPoll", (req, res) => {
             0 0 5px ${data.color},
             0 0 10px ${data.color},
             0 0 20px ${data.color};
+          text-align: center;
+          flex-direction: column;
         }
       </style>
+
       <link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
     </head>
     <body>
+
       Was it a good rez?<br><br>
+
       👍 Yes: ${poll.yes}<br>
       👎 No: ${poll.no}
+
     </body>
     </html>
   `);
