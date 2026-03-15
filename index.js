@@ -666,18 +666,27 @@ app.get("/showRezPoll", (req, res) => {
   res.send(`
     <!DOCTYPE html>
     <html>
-    <head>
-      <meta http-equiv="refresh" content="2">
+    <meta charset="UTF-8" />
+      <meta http-equiv="refresh" content="10">
       <style>
         body {
-          margin:0;
-          background:transparent;
-          color:white;
-          font-size:48px;
-          font-family:sans-serif;
-          text-align:center;
+          margin: 0;
+          padding: 0;
+          background-color: transparent;
+          font-size: 48px;
+          font-family: '${data.font}', sans-serif;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          color: ${data.color};
+          text-shadow:
+            0 0 5px ${data.color},
+            0 0 10px ${data.color},
+            0 0 20px ${data.color};
         }
       </style>
+      <link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
     </head>
     <body>
       Was it a good rez?<br><br>
