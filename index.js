@@ -6,6 +6,7 @@ const app = express();
 app.use(cors());
 
 let records = {};
+let activePolls = {};
 
 // Load records from file
 try {
@@ -188,6 +189,61 @@ app.get("/adddeaths", (req, res) => {
   saveRecords();
 
   res.send(`Added ${deathsToAdd} deaths to ${channel}. New Total: ${data.death}.`);
+});
+
+app.get("/startRezPoll", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  if (!channel) return res.send("Missing ?channel=");
+
+  const data = getChannelData(channel);
+
+  activePolls[channel] = {
+    yes: 0,
+    no: 0,
+    active: true
+  };
+
+  res.send("Rez poll started! Vote with !yes or !no");
+
+  // Auto close after 60 seconds
+  setTimeout(() => {
+    const poll = activePolls[channel];
+    if (!poll || !poll.active) return;
+
+    if (poll.yes >= poll.no) {
+      data.goodRez++;
+    } else {
+      data.badRez++;
+    }
+
+    data.percent = Math.round((data.goodRez / (data.goodRez + data.badRez)) * 10000) / 100;
+
+    poll.active = false;
+
+    saveRecords();
+
+    console.log(`Rez poll ended for ${channel}: YES ${poll.yes} / NO ${poll.no}`);
+  }, 60000);
+});
+
+app.get("/voteYes", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  const poll = activePolls[channel];
+
+  if (!poll || !poll.active) return res.send("No active poll");
+
+  poll.yes++;
+  res.send("Vote counted");
+});
+
+app.get("/voteNo", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  const poll = activePolls[channel];
+
+  if (!poll || !poll.active) return res.send("No active poll");
+
+  poll.no++;
+  res.send("Vote counted");
 });
 
 app.get("/setdeath", (req, res) => {
@@ -597,6 +653,39 @@ app.get("/export", (req, res) => {
   res.setHeader("Content-Disposition", "attachment; filename=records.json");
   res.setHeader("Content-Type", "application/json");
   res.send(JSON.stringify(records, null, 2));
+});
+
+app.get("/showRezPoll", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  const poll = activePolls[channel];
+
+  if (!poll || !poll.active) {
+    return res.send("");
+  }
+
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta http-equiv="refresh" content="2">
+      <style>
+        body {
+          margin:0;
+          background:transparent;
+          color:white;
+          font-size:48px;
+          font-family:sans-serif;
+          text-align:center;
+        }
+      </style>
+    </head>
+    <body>
+      Was it a good rez?<br><br>
+      👍 Yes: ${poll.yes}<br>
+      👎 No: ${poll.no}
+    </body>
+    </html>
+  `);
 });
 
 const PORT = process.env.PORT || 3000;
