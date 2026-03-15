@@ -701,9 +701,9 @@ app.get("/showRezPoll", (req, res) => {
 
       Was it a good rez?<br><br>
 
-      <img src="https://static-cdn.jtvnw.net/emoticons/v2/emotesv2_b46b3c49a06d40918e39f87f20892cb7/default/dark/1.0" height= "48"> Yes: ${poll.yes}<br>
-      👎 No: ${poll.no}
-
+      <img src="https://static-cdn.jtvnw.net/emoticons/v2/emotesv2_4af923b4a6df4001b529141413990892/default/dark/1.0" height="48"> Yes: ${poll.yes}<br>
+      <img src="https://static-cdn.jtvnw.net/emoticons/v2/emotesv2_c4450bfb31ef45b8ab157ba099b37081/default/dark/1.0" height="48"> No: ${poll.no}<br>
+      
     </body>
     </html>
   `);
