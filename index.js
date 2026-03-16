@@ -200,6 +200,7 @@ app.get("/startRezPoll", (req, res) => {
   activePolls[channel] = {
     yes: 0,
     no: 0,
+    voters: new Set(),
     active: true
   };
 
@@ -227,23 +228,49 @@ app.get("/startRezPoll", (req, res) => {
 });
 
 app.get("/voteYes", (req, res) => {
+
   const channel = req.query.channel?.toLowerCase();
+  const user = req.query.user?.toLowerCase();
+
+  if (!channel || !user)
+    return res.send("Missing ?channel= or ?user=");
+
   const poll = activePolls[channel];
 
-  if (!poll || !poll.active) return res.send("No active poll");
+  if (!poll || !poll.active)
+    return res.send("No active poll");
 
+  if (poll.voters.has(user))
+    return res.send("You already voted");
+
+  poll.voters.add(user);
   poll.yes++;
+
   res.send("Vote counted");
+
 });
 
 app.get("/voteNo", (req, res) => {
+
   const channel = req.query.channel?.toLowerCase();
+  const user = req.query.user?.toLowerCase();
+
+  if (!channel || !user)
+    return res.send("Missing ?channel= or ?user=");
+
   const poll = activePolls[channel];
 
-  if (!poll || !poll.active) return res.send("No active poll");
+  if (!poll || !poll.active)
+    return res.send("No active poll");
 
+  if (poll.voters.has(user))
+    return res.send("You already voted");
+
+  poll.voters.add(user);
   poll.no++;
+
   res.send("Vote counted");
+
 });
 
 app.get("/setdeath", (req, res) => {
