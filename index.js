@@ -109,34 +109,6 @@ app.get("/addloss", (req, res) => {
   res.send(`Added loss for ${channel}. Wins: ${data.wins}, Losses: ${data.losses}`);
 });
 
-// Add Good Rez
-app.get("/addGoodRez", (req, res) => {
-  const channel = req.query.channel?.toLowerCase();
-  if (!channel) return res.send("Missing ?channel=");
-
-  const data = getChannelData(channel);
-  data.goodRez++;
-  data.percent = Math.round((data.goodRez / (data.goodRez + data.badRez)) * 10000) / 100;
-  saveRecords();
-
-  res.send(`Added a good rez for ${channel}. Good Rez: ${data.goodRez}, Bad Rez: ${data.badRez}. Percent: ${data.percent}`);
-});
-
-// Add Bad Rez
-app.get("/addBadRez", (req, res) => {
-  const channel = req.query.channel?.toLowerCase();
-  if (!channel) return res.send("Missing ?channel=");
-
-  const data = getChannelData(channel);
-  data.badRez++;
-  data.percent = Math.round((data.goodRez / (data.goodRez + data.badRez)) * 10000) / 100;
-  saveRecords();
-
-  res.send(`Added a bad rez for ${channel}. Good Rez: ${data.goodRez}, Bad Rez: ${data.badRez}. Percent: ${data.percent}`);
-});
-
-
-
 // Add Good Rezs
 app.get("/setGoodRezs", (req, res) => {
   const channel = req.query.channel?.toLowerCase();
@@ -276,52 +248,6 @@ app.get("/startRezPoll", async (req, res) => {
     res.send("Failed to start Twitch poll");
 
   }
-
-});
-
-app.get("/voteYes", (req, res) => {
-
-  const channel = req.query.channel?.toLowerCase();
-  const user = req.query.user?.toLowerCase();
-
-  if (!channel || !user)
-    return res.send("Missing ?channel= or ?user=");
-
-  const poll = activePolls[channel];
-
-  if (!poll || !poll.active)
-    return res.send("No active poll");
-
-  if (poll.voters.has(user))
-    return res.send("You already voted");
-
-  poll.voters.add(user);
-  poll.yes++;
-
-  res.send("Vote counted");
-
-});
-
-app.get("/voteNo", (req, res) => {
-
-  const channel = req.query.channel?.toLowerCase();
-  const user = req.query.user?.toLowerCase();
-
-  if (!channel || !user)
-    return res.send("Missing ?channel= or ?user=");
-
-  const poll = activePolls[channel];
-
-  if (!poll || !poll.active)
-    return res.send("No active poll");
-
-  if (poll.voters.has(user))
-    return res.send("You already voted");
-
-  poll.voters.add(user);
-  poll.no++;
-
-  res.send("Vote counted");
 
 });
 
@@ -732,81 +658,6 @@ app.get("/export", (req, res) => {
   res.setHeader("Content-Disposition", "attachment; filename=records.json");
   res.setHeader("Content-Type", "application/json");
   res.send(JSON.stringify(records, null, 2));
-});
-
-app.get("/showRezPoll", (req, res) => {
-  const channel = req.query.channel?.toLowerCase();
-  if (!channel) return res.send("Missing ?channel=");
-
-  const poll = activePolls[channel];
-  const data = getChannelData(channel);
-
-  if (!poll || !poll.active) {
-    return res.send("");
-  }
-
-  const safeFont = encodeURIComponent(data.font);
-
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8" />
-      <meta http-equiv="refresh" content="2">
-      <style>
-        body {
-          margin: 0;
-          padding: 0;
-          background-color: transparent;
-          font-size: 48px;
-          font-family: '${data.font}', sans-serif;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-          height: 100vh;
-          color: ${data.color};
-          text-shadow:
-            0 0 5px ${data.color},
-            0 0 10px ${data.color},
-            0 0 20px ${data.color};
-          text-align: center;
-        }
-
-        .voteRow {
-          display: flex;
-          align-items: center;
-          gap: 20px;
-          margin: 10px 0;
-        }
-
-        img {
-          height: 64px;   /* 👈 Change emote size here */
-          width: auto;
-        }
-
-      </style>
-
-      <link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
-    </head>
-
-    <body>
-
-      <div>Was it a good rez?</div>
-
-      <div class="voteRow">
-        <img src="https://static-cdn.jtvnw.net/emoticons/v2/emotesv2_4af923b4a6df4001b529141413990892/default/dark/1.0"
-        <div>Yes: ${poll.yes}</div>
-      </div>
-
-      <div class="voteRow">
-        <img src="https://static-cdn.jtvnw.net/emoticons/v2/emotesv2_c4450bfb31ef45b8ab157ba099b37081/default/dark/1.0" height="48">
-        <div>No: ${poll.no}</div>
-      </div>
-
-    </body>
-    </html>
-  `);
 });
 
 async function finishRezPoll(channel) {
