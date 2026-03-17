@@ -1,6 +1,13 @@
 const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
+const axios = require("axios");
+
+const TWITCH_CLIENT_ID = process.env.TWITCH_CLIENT_ID;
+const TWITCH_CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET;
+const TWITCH_ACCESS_TOKEN = process.env.TWITCH_ACCESS_TOKEN;
+const TWITCH_BROADCASTER_ID = process.env.TWITCH_BROADCASTER_ID;
+
 
 const app = express();
 app.use(cors());
@@ -43,6 +50,40 @@ function getChannelData(channel) {
 function saveRecords() {
   fs.writeFileSync("./records.json", JSON.stringify(records, null, 2));
 }
+
+app.get("/twitch/callback", async (req, res) => {
+
+  const code = req.query.code;
+
+  try {
+
+    const response = await axios.post(
+      "https://id.twitch.tv/oauth2/token",
+      null,
+      {
+        params: {
+          client_id: TWITCH_CLIENT_ID,
+          client_secret: TWITCH_CLIENT_SECRET,
+          code: code,
+          grant_type: "authorization_code",
+          redirect_uri: "https://win-loss-tracker.onrender.com/twitch/callback"
+        }
+      }
+    );
+
+    console.log("ACCESS TOKEN:", response.data.access_token);
+
+    res.send("Twitch authorization complete. Check server logs.");
+
+  } catch (err) {
+
+    console.error(err.response?.data || err.message);
+
+    res.send("OAuth failed");
+
+  }
+
+});
 
 // Add win
 app.get("/addwin", (req, res) => {
@@ -191,40 +232,51 @@ app.get("/adddeaths", (req, res) => {
   res.send(`Added ${deathsToAdd} deaths to ${channel}. New Total: ${data.death}.`);
 });
 
-app.get("/startRezPoll", (req, res) => {
+app.get("/startRezPoll", async (req, res) => {
+
   const channel = req.query.channel?.toLowerCase();
   if (!channel) return res.send("Missing ?channel=");
 
-  const data = getChannelData(channel);
+  try {
 
-  activePolls[channel] = {
-    yes: 0,
-    no: 0,
-    voters: new Set(),
-    active: true
-  };
+    const response = await axios.post(
+      "https://api.twitch.tv/helix/polls",
+      {
+        broadcaster_id: TWITCH_BROADCASTER_ID,
+        title: "Was it a good rez?",
+        choices: [
+          { title: "Yes" },
+          { title: "No" }
+        ],
+        duration: 60
+      },
+      {
+        headers: {
+          "Client-ID": TWITCH_CLIENT_ID,
+          "Authorization": `Bearer ${TWITCH_ACCESS_TOKEN}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
 
-  res.send("Rez poll started! Vote with !yes or !no");
+    const poll = response.data.data[0];
 
-  // Auto close after 60 seconds
-  setTimeout(() => {
-    const poll = activePolls[channel];
-    if (!poll || !poll.active) return;
+    activePolls[channel] = {
+      twitchPollId: poll.id,
+      active: true
+    };
 
-    if (poll.yes >= poll.no) {
-      data.goodRez++;
-    } else {
-      data.badRez++;
-    }
+    res.send("Twitch rez poll started!");
 
-    data.percent = Math.round((data.goodRez / (data.goodRez + data.badRez)) * 10000) / 100;
+    setTimeout(() => finishRezPoll(channel), 61000);
 
-    poll.active = false;
+  } catch (err) {
 
-    saveRecords();
+    console.error(err.response?.data || err.message);
+    res.send("Failed to start Twitch poll");
 
-    console.log(`Rez poll ended for ${channel}: YES ${poll.yes} / NO ${poll.no}`);
-  }, 60000);
+  }
+
 });
 
 app.get("/voteYes", (req, res) => {
@@ -756,6 +808,50 @@ app.get("/showRezPoll", (req, res) => {
     </html>
   `);
 });
+
+async function finishRezPoll(channel) {
+
+  const pollData = activePolls[channel];
+  if (!pollData) return;
+
+  try {
+
+    const response = await axios.get(
+      `https://api.twitch.tv/helix/polls?broadcaster_id=${TWITCH_BROADCASTER_ID}`,
+      {
+        headers: {
+          "Client-ID": TWITCH_CLIENT_ID,
+          "Authorization": `Bearer ${TWITCH_ACCESS_TOKEN}`
+        }
+      }
+    );
+
+    const poll = response.data.data[0];
+
+    const yesVotes = poll.choices[0].votes;
+    const noVotes = poll.choices[1].votes;
+
+    const data = getChannelData(channel);
+
+    if (yesVotes >= noVotes) {
+      data.goodRez++;
+    } else {
+      data.badRez++;
+    }
+
+    data.percent = Math.round((data.goodRez / (data.goodRez + data.badRez)) * 10000) / 100;
+
+    saveRecords();
+
+    console.log(`Twitch poll result: YES ${yesVotes} / NO ${noVotes}`);
+
+  } catch (err) {
+
+    console.error(err.response?.data || err.message);
+
+  }
+
+}
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Tracker running on port ${PORT}`));
