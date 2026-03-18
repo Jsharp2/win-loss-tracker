@@ -8,6 +8,23 @@ const TWITCH_CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET;
 const TWITCH_ACCESS_TOKEN = process.env.TWITCH_ACCESS_TOKEN;
 const TWITCH_BROADCASTER_ID = process.env.TWITCH_BROADCASTER_ID;
 
+const TOKEN_FILE = "./tokens.json";
+
+let tokens = {};
+
+// Load tokens
+try {
+  tokens = JSON.parse(fs.readFileSync(TOKEN_FILE, "utf8"));
+  console.log("✅ Loaded tokens");
+} catch {
+  tokens = {};
+}
+
+// Save tokens
+function saveTokens() {
+  fs.writeFileSync(TOKEN_FILE, JSON.stringify(tokens, null, 2));
+}
+
 
 const app = express();
 app.use(cors());
@@ -52,11 +69,11 @@ function saveRecords() {
 }
 
 app.get("/twitch/callback", async (req, res) => {
-
   const code = req.query.code;
 
-  try {
+  if (!code) return res.send("Missing code");
 
+  try {
     const response = await axios.post(
       "https://id.twitch.tv/oauth2/token",
       null,
@@ -71,18 +88,18 @@ app.get("/twitch/callback", async (req, res) => {
       }
     );
 
-    console.log("ACCESS TOKEN:", response.data.access_token);
+    tokens.access_token = response.data.access_token;
+    tokens.refresh_token = response.data.refresh_token;
 
-    res.send("Twitch authorization complete. Check server logs.");
+    saveTokens();
+
+    console.log("✅ Tokens saved!");
+    res.send("OAuth complete! You can close this.");
 
   } catch (err) {
-
     console.error(err.response?.data || err.message);
-
     res.send("OAuth failed");
-
   }
-
 });
 
 // Add win
@@ -96,6 +113,69 @@ app.get("/addwin", (req, res) => {
 
   res.send(`Added win for ${channel}. Wins: ${data.wins}, Losses: ${data.losses}`);
 });
+
+async function refreshAccessToken() {
+  try {
+    const response = await axios.post(
+      "https://id.twitch.tv/oauth2/token",
+      null,
+      {
+        params: {
+          grant_type: "refresh_token",
+          refresh_token: tokens.refresh_token,
+          client_id: TWITCH_CLIENT_ID,
+          client_secret: TWITCH_CLIENT_SECRET
+        }
+      }
+    );
+
+    tokens.access_token = response.data.access_token;
+
+    // Twitch may rotate refresh token
+    if (response.data.refresh_token) {
+      tokens.refresh_token = response.data.refresh_token;
+    }
+
+    saveTokens();
+
+    console.log("🔄 Token refreshed");
+
+  } catch (err) {
+    console.error("❌ Refresh failed:", err.response?.data || err.message);
+  }
+}
+
+async function twitchRequest(config) {
+  try {
+    return await axios({
+      ...config,
+      headers: {
+        ...config.headers,
+        "Client-ID": TWITCH_CLIENT_ID,
+        "Authorization": `Bearer ${tokens.access_token}`
+      }
+    });
+
+  } catch (err) {
+
+    if (err.response?.status === 401) {
+      console.log("⚠️ Token expired, refreshing...");
+      await refreshAccessToken();
+
+      // retry request
+      return await axios({
+        ...config,
+        headers: {
+          ...config.headers,
+          "Client-ID": TWITCH_CLIENT_ID,
+          "Authorization": `Bearer ${tokens.access_token}`
+        }
+      });
+    }
+
+    throw err;
+  }
+}
 
 // Add loss
 app.get("/addloss", (req, res) => {
@@ -211,9 +291,10 @@ app.get("/startRezPoll", async (req, res) => {
 
   try {
 
-    const response = await axios.post(
-      "https://api.twitch.tv/helix/polls",
-      {
+    const response = await twitchRequest({
+      method: "POST",
+      url: "https://api.twitch.tv/helix/polls",
+      data: {
         broadcaster_id: TWITCH_BROADCASTER_ID,
         title: "Was it a good rez?",
         choices: [
@@ -221,15 +302,8 @@ app.get("/startRezPoll", async (req, res) => {
           { title: "No" }
         ],
         duration: 60
-      },
-      {
-        headers: {
-          "Client-ID": TWITCH_CLIENT_ID,
-          "Authorization": `Bearer ${TWITCH_ACCESS_TOKEN}`,
-          "Content-Type": "application/json"
-        }
       }
-    );
+    });
 
     const poll = response.data.data[0];
 
@@ -238,14 +312,14 @@ app.get("/startRezPoll", async (req, res) => {
       active: true
     };
 
-    res.send("Twitch rez poll started!");
+    res.send("✅ Twitch rez poll started!");
 
     setTimeout(() => finishRezPoll(channel), 61000);
 
   } catch (err) {
 
     console.error(err.response?.data || err.message);
-    res.send("Failed to start Twitch poll");
+    res.send("❌ Failed to start Twitch poll");
 
   }
 
@@ -667,15 +741,10 @@ async function finishRezPoll(channel) {
 
   try {
 
-    const response = await axios.get(
-      `https://api.twitch.tv/helix/polls?broadcaster_id=${TWITCH_BROADCASTER_ID}`,
-      {
-        headers: {
-          "Client-ID": TWITCH_CLIENT_ID,
-          "Authorization": `Bearer ${TWITCH_ACCESS_TOKEN}`
-        }
-      }
-    );
+    const response = await twitchRequest({
+  method: "GET",
+  url: `https://api.twitch.tv/helix/polls?broadcaster_id=${TWITCH_BROADCASTER_ID}`
+});
 
     const poll = response.data.data[0];
 
