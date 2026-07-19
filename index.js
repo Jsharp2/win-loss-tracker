@@ -293,7 +293,7 @@ app.get("/nuzlossReset", (req, res) => {
   data.pokeloss = 0;
   saveRecords();
 
-  res.send('Reset Nuzlock Information`);
+  res.send('Reset Nuzlock Information');
 });
 
 app.get("/nuzdeaths", (req, res) => {
@@ -317,7 +317,7 @@ app.get("/nuzdeathsreset", (req, res) => {
   data.pokeloss == 0;
   saveRecords();
 
-  res.send('Reset Nuzlock Information`);
+  res.send('Reset Nuzlock Information');
 });
 
 // Show record overlay
