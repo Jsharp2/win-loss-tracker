@@ -189,71 +189,6 @@ app.get("/addloss", (req, res) => {
   res.send(`Added loss for ${channel}. Wins: ${data.wins}, Losses: ${data.losses}`);
 });
 
-// Add Good Rezs
-app.get("/setGoodRezs", (req, res) => {
-  const channel = req.query.channel?.toLowerCase();
-  const deathParam = req.query.death;
-
-  if (!channel || !deathParam) return res.send("Missing ?channel= or ?death=");
-
-  const deathsToAdd = parseInt(deathParam, 10);
-  if (isNaN(deathsToAdd) || deathsToAdd < 0) {
-    return res.send("Invalid death count. Must be a non-negative number.");
-  }
-
-  const data = getChannelData(channel);
-  data.goodRez = deathsToAdd;
-  data.percent = Math.round((data.goodRez / (data.goodRez + data.badRez)) * 10000) / 100;
-  saveRecords();
-
-  res.send(`Set good rezs for ${channel} to ${deathsToAdd}. Good Rez: ${data.goodRez}, Bad Rez: ${data.badRez}. Percent: ${data.percent}`);
-});
-
-// Add Bad Rezs
-app.get("/setBadRezs", (req, res) => {
-  const channel = req.query.channel?.toLowerCase();
-  const deathParam = req.query.death;
-
-  if (!channel || !deathParam) return res.send("Missing ?channel= or ?death=");
-
-  const deathsToAdd = parseInt(deathParam, 10);
-  if (isNaN(deathsToAdd) || deathsToAdd < 0) {
-    return res.send("Invalid death count. Must be a non-negative number.");
-  }
-
-  const data = getChannelData(channel);
-  data.badRez = deathsToAdd;
-  data.percent = Math.round((data.goodRez / (data.goodRez + data.badRez)) * 10000) / 100;
-  saveRecords();
-
-  res.send(`Set bad rezs for ${channel} to  ${deathsToAdd}. Good Rez: ${data.goodRez}, Bad Rez: ${data.badRez}. Percent: ${data.percent}`);
-});
-
-app.get("/resetRez", (req, res) => {
-  const channel = req.query.channel?.toLowerCase();
-  if (!channel) return res.send("Missing ?channel=");
-
-  const data = getChannelData(channel);
-
-  data.badRez = 0;
-  data.goodRez = 0;
-  saveRecords();
-
-  res.send(`Rezs reset for ${channel}`);
-});
-
-// Add knife
-app.get("/addknife", (req, res) => {
-  const channel = req.query.channel?.toLowerCase();
-  if (!channel) return res.send("Missing ?channel=");
-
-  const data = getChannelData(channel);
-  data.knives++;
-  saveRecords();
-
-  res.send(`${channel} has gotten:  ${data.knives} knife kills`);
-});
-
 // Add death
 app.get("/adddeath", (req, res) => {
   const channel = req.query.channel?.toLowerCase();
@@ -284,47 +219,6 @@ app.get("/adddeaths", (req, res) => {
   res.send(`Added ${deathsToAdd} deaths to ${channel}. New Total: ${data.death}.`);
 });
 
-app.get("/startRezPoll", async (req, res) => {
-
-  const channel = req.query.channel?.toLowerCase();
-  if (!channel) return res.send("Missing ?channel=");
-
-  try {
-
-    const response = await twitchRequest({
-      method: "POST",
-      url: "https://api.twitch.tv/helix/polls",
-      data: {
-        broadcaster_id: TWITCH_BROADCASTER_ID,
-        title: "Was it a good rez?",
-        choices: [
-          { title: "Yes" },
-          { title: "No" }
-        ],
-        duration: 60
-      }
-    });
-
-    const poll = response.data.data[0];
-
-    activePolls[channel] = {
-      twitchPollId: poll.id,
-      active: true
-    };
-
-    res.send("✅ Twitch rez poll started!");
-
-    setTimeout(() => finishRezPoll(channel), 61000);
-
-  } catch (err) {
-
-    console.error(err.response?.data || err.message);
-    res.send("❌ Failed to start Twitch poll");
-
-  }
-
-});
-
 app.get("/setdeath", (req, res) => {
   const channel = req.query.channel?.toLowerCase();
   const death = req.query.death;
@@ -335,19 +229,6 @@ app.get("/setdeath", (req, res) => {
   saveRecords();
 
   res.send(`Set deaths for ${channel} to ${death}`);
-});
-
-//Sets knives
-app.get("/setknife", (req, res) => {
-  const channel = req.query.channel?.toLowerCase();
-  const knife = req.query.death;
-  if (!channel || !knife) return res.send("Missing ?channel= or ?death=");
-
-  const data = getChannelData(channel);
-  data.knives = knife;
-  saveRecords();
-
-  res.send(`Set knives for ${channel} to ${knife}`);
 });
 
 // Reset record
@@ -361,18 +242,6 @@ app.get("/reset", (req, res) => {
   saveRecords();
 
   res.send(`${channel}'s record has been reset.`);
-});
-
-// Reset knives
-app.get("/knifereset", (req, res) => {
-  const channel = req.query.channel?.toLowerCase();
-  if (!channel) return res.send("Missing ?channel=");
-
-  const data = getChannelData(channel);
-  data.knives = 0;
-  saveRecords();
-
-  res.send(`${channel}'s knife kills reset.`);
 });
 
 // Reset deaths
@@ -414,16 +283,37 @@ app.get("/nuzloss", (req, res) => {
   res.send(`Run Loss. F in Chat`);
 });
 
+app.get("/nuzlossReset", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  if (!channel) return res.send("Missing ?channel=");
+
+  const data = getChannelData(channel);
+
+  data.runloss == 0;
+  data.pokeloss = 0;
+  saveRecords();
+});
+
 app.get("/nuzdeaths", (req, res) => {
   const channel = req.query.channel?.toLowerCase();
-  const deadPoke = req.query.name;
+  const death = req.query.death;
   if (!channel) return res.send("Missing ?channel=");
 
   const data = getChannelData(channel);
   data.pokeloss += 1;
   saveRecords();
 
-  res.send(`RIP ${deadPoke}. o7`);
+  res.send(`RIP ${death}. o7`);
+});
+
+app.get("/nuzdeathsreset", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  const deadPoke = req.query.name;
+  if (!channel) return res.send("Missing ?channel=");
+
+  const data = getChannelData(channel);
+  data.pokeloss == 0;
+  saveRecords();
 });
 
 // Show record overlay
