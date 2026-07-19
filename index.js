@@ -292,6 +292,8 @@ app.get("/nuzlossReset", (req, res) => {
   data.runloss == 0;
   data.pokeloss = 0;
   saveRecords();
+
+  res.send('Reset Nuzlock Information`);
 });
 
 app.get("/nuzdeaths", (req, res) => {
@@ -314,6 +316,8 @@ app.get("/nuzdeathsreset", (req, res) => {
   const data = getChannelData(channel);
   data.pokeloss == 0;
   saveRecords();
+
+  res.send('Reset Nuzlock Information`);
 });
 
 // Show record overlay
