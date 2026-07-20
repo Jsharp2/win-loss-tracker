@@ -368,14 +368,14 @@ app.get("/shownuzdeaths", (req, res) => {
 
 // Show record overlay
 app.get("/shownuzlosses", (req, res) => {
-  const channel = req.query.channel?.toLowerCase();
+const channel = req.query.channel?.toLowerCase();
   const raw = req.query.raw === "1";
   if (!channel) return res.send("Missing ?channel=");
 
   const data = getChannelData(channel);
 
   if (raw) {
-    return res.send(`L Plus Ratio`);
+    return res.send(`Record: ${data.wins}W - ${data.losses}L`);
   }
 
   const safeFont = encodeURIComponent(data.font);
@@ -406,7 +406,7 @@ app.get("/shownuzlosses", (req, res) => {
       <link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
     </head>
     <body>
-      Run: ${data.runloss}
+      Runs Lost: ${data.runloss}
     </body>
     </html>
   `);
@@ -472,63 +472,6 @@ app.get("/record", (req, res) => {
   `);
 });
 
-// Show rez  overlay
-app.get("/showrezper", (req, res) => {
-  const channel = req.query.channel?.toLowerCase();
-  const raw = req.query.raw === "1";
-  if (!channel) return res.send("Missing ?channel=");
-
-  const data = getChannelData(channel);
-
-  if (raw) {
-    return res.send(`Record: ${data.wins}W - ${data.losses}L`);
-  }
-
-  let desc;
-
-if (data.goodRez + data.badRez == 0)
-{
-  desc = `Rez: ${data.goodRez} / ${data.badRez} / 0%`;
-}
-else
-{
-  desc = `Rez: ${data.goodRez} / ${data.badRez} / ${((data.goodRez / (data.goodRez + data.badRez)) * 100).toFixed(2)}%`;
-}
-
-  const safeFont = encodeURIComponent(data.font);
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8" />
-      <meta http-equiv="refresh" content="10">
-      <style>
-        body {
-          margin: 0;
-          padding: 0;
-          background-color: transparent;
-          font-size: 48px;
-          font-family: '${data.font}', sans-serif;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          height: 100vh;
-          color: ${data.color};
-          text-shadow:
-            0 0 5px ${data.color},
-            0 0 10px ${data.color},
-            0 0 20px ${data.color};
-        }
-      </style>
-      <link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
-    </head>
-    <body>
-      ${desc}
-    </body>
-    </html>
-  `);
-});
-
 // Show death overlay
 app.get("/showdeaths", (req, res) => {
   const channel = req.query.channel?.toLowerCase();
@@ -574,98 +517,12 @@ app.get("/showdeaths", (req, res) => {
     </html>
   `);
 });
-
-// Show death overlay
-app.get("/showknifekills", (req, res) => {
-  const channel = req.query.channel?.toLowerCase();
-  const raw = req.query.raw === "1";
-  if (!channel) return res.send("Missing ?channel=");
-
-  const data = getChannelData(channel);
-
-  if (raw) {
-    return res.send(`Deaths: ${data.death}`);
-  }
-
-  const safeFont = encodeURIComponent(data.font);
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8" />
-      <meta http-equiv="refresh" content="10">
-      <style>
-        body {
-          margin: 0;
-          padding: 0;
-          background-color: transparent;
-          font-size: 48px;
-          font-family: '${data.font}', sans-serif;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          height: 100vh;
-          color: ${data.color};
-          text-shadow:
-            0 0 5px ${data.color},
-            0 0 10px ${data.color},
-            0 0 20px ${data.color};
-        }
-      </style>
-      <link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
-    </head>
-    <body>
-      Knives: ${data.knives}
-    </body>
-    </html>
-  `);
-});
-
 // Export data
 app.get("/export", (req, res) => {
   res.setHeader("Content-Disposition", "attachment; filename=records.json");
   res.setHeader("Content-Type", "application/json");
   res.send(JSON.stringify(records, null, 2));
 });
-
-async function finishRezPoll(channel) {
-
-  const pollData = activePolls[channel];
-  if (!pollData) return;
-
-  try {
-
-    const response = await twitchRequest({
-  method: "GET",
-  url: `https://api.twitch.tv/helix/polls?broadcaster_id=${TWITCH_BROADCASTER_ID}`
-});
-
-    const poll = response.data.data[0];
-
-    const yesVotes = poll.choices[0].votes;
-    const noVotes = poll.choices[1].votes;
-
-    const data = getChannelData(channel);
-
-    if (yesVotes >= noVotes) {
-      data.goodRez++;
-    } else {
-      data.badRez++;
-    }
-
-    data.percent = Math.round((data.goodRez / (data.goodRez + data.badRez)) * 10000) / 100;
-
-    saveRecords();
-
-    console.log(`Twitch poll result: YES ${yesVotes} / NO ${noVotes}`);
-
-  } catch (err) {
-
-    console.error(err.response?.data || err.message);
-
-  }
-
-}
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Tracker running on port ${PORT}`));
