@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+
+<style>
+
+body{
+
+    margin:0;
+    overflow:hidden;
+    background:transparent;
+
+}
+
+#title{
+
+    text-align:center;
+
+    font-size:52px;
+
+    margin-bottom:15px;
+
+}
+
+#graveyard{
+
+    position:relative;
+
+    width:100%;
+
+    height:450px;
+
+    overflow:hidden;
+
+    mask-image:linear-gradient(
+        to bottom,
+        transparent,
+        black 10%,
+        black 90%,
+        transparent
+    );
+
+    -webkit-mask-image:linear-gradient(
+        to bottom,
+        transparent,
+        black 10%,
+        black 90%,
+        transparent
+    );
+
+}
+
+#scrollContainer{
+
+    position:absolute;
+
+    width:100%;
+
+}
+
+.pokemon{
+
+    width:100%;
+
+    text-align:center;
+
+    font-size:42px;
+
+    margin:18px 0;
+
+}
+
+@keyframes scrollUp{
+
+    from{
+
+        transform:translateY(100%);
+
+    }
+
+    to{
+
+        transform:translateY(-100%);
+
+    }
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div id="title">
+Loading...
+</div>
+
+<div id="graveyard">
+
+<div id="scrollContainer"></div>
+
+</div>
+
+<script>
+
+const params = new URLSearchParams(window.location.search);
+
+const channel = params.get("channel");
+
+let previousJSON = "";
+
+async function updateGraveyard(){
+
+    const response = await fetch("/shownuzdeaths/data?channel=" + channel);
+
+    const data = await response.json();
+
+    const json = JSON.stringify(data);
+
+    if(json === previousJSON)
+        return;
+
+    previousJSON = json;
+
+    document.body.style.color = data.color;
+
+    document.body.style.fontFamily =
+        data.font + ", sans-serif";
+
+    document.getElementById("title").innerHTML =
+        "☠ Graveyard (" + data.count + ") ☠";
+
+    const container =
+        document.getElementById("scrollContainer");
+
+    container.innerHTML = "";
+
+    if(data.names.length === 0){
+
+        container.innerHTML =
+            "<div class='pokemon'>Nobody has fallen... yet!</div>";
+
+        return;
+
+    }
+
+    data.names.forEach(function(name){
+
+        const div = document.createElement("div");
+
+        div.className = "pokemon";
+
+        div.textContent = "☠ " + name;
+
+        container.appendChild(div);
+
+    });
+
+    const spacer = document.createElement("div");
+
+    spacer.style.height = "250px";
+
+    container.appendChild(spacer);
+
+    data.names.forEach(function(name){
+
+        const div = document.createElement("div");
+
+        div.className = "pokemon";
+
+        div.textContent = "☠ " + name;
+
+        container.appendChild(div);
+
+    });
+
+    const speed = Math.max(20, data.names.length * 3);
+
+    container.style.animation =
+        "scrollUp " + speed + "s linear infinite";
+
+}
+
+updateGraveyard();
+
+setInterval(updateGraveyard,2000);
+
+</script>
+
+</body>
+
+</html>
