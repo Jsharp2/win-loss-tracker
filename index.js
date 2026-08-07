@@ -279,7 +279,7 @@ app.get("/nuzloss", (req, res) => {
 
   data.runloss += 1;
   data.pokeloss = 0;
-  a.deadPokemon = [];
+  data.deadPokes = [];
   saveRecords();
 
   res.send(`Run Loss. F in Chat`);
@@ -293,7 +293,7 @@ app.get("/nuzlossReset", (req, res) => {
 
   data.runloss = 0;
   data.pokeloss = 0;
-  data.deadPokemon = [];
+  data.deadPokes = [];
   saveRecords();
 
   res.send('Reset Nuzlock Information');
@@ -307,7 +307,7 @@ app.get("/nuzdeaths", (req, res) => {
   const data = getChannelData(channel);
   data.pokeloss += 1;
 
-  data.deadPoke.push(death);
+  data.deadPokes.push(death);
   saveRecords();
 
   res.send(`RIP ${death}. o7`);
@@ -320,7 +320,7 @@ app.get("/nuzdeathsreset", (req, res) => {
 
   const data = getChannelData(channel);
   data.pokeloss = 0;
-  data.deadPokemon = [];
+  data.deadPokes = [];
   saveRecords();
 
   res.send('Reset Nuzlock Information');
@@ -385,8 +385,8 @@ const channel = req.query.channel?.toLowerCase();
   }
 
   const safeFont = encodeURIComponent(data.font);
-  const names = data.deadPokemon.join(" • ");
-const shouldScroll = data.deadPokemon.length > 4;
+  const names = data.deadPokes.join(" • ");
+const shouldScroll = data.deadPokes.length > 4;
 
 res.send(`
 <!DOCTYPE html>
