@@ -460,112 +460,238 @@ ${shouldScroll ? `
 });
 
 // Show record overlay
-app.get("/shownuzlosses", (req, res) => {
-const channel = req.query.channel?.toLowerCase();
-  const raw = req.query.raw === "1";
-  if (!channel) return res.send("Missing ?channel=");
+app.get("/shownuzdeaths", (req, res) => {
 
-  const data = getChannelData(channel);
+    const channel = req.query.channel?.toLowerCase();
 
-  if (raw) {
-    return res.send(`Record: ${data.wins}W - ${data.losses}L`);
-  }
+    if (!channel)
+        return res.send("Missing ?channel=");
 
-  const safeFont = encodeURIComponent(data.font);
-  const names = data.deadPokes.join(" • ");
-const shouldScroll = data.deadPokes.length > 4;
 
-res.send(`
+    res.send(`
+
 <!DOCTYPE html>
+
 <html>
+
 <head>
+
 <meta charset="UTF-8">
-<meta http-equiv="refresh" content="10">
+
 
 <style>
 
-body{
+body {
+
     margin:0;
     overflow:hidden;
     background:transparent;
-    color:${data.color};
-    font-family:'${data.font}',sans-serif;
-    font-size:42px;
+
+    color:white;
+
+    font-family:Merienda, sans-serif;
+
     text-shadow:
-        0 0 5px ${data.color},
-        0 0 10px ${data.color},
-        0 0 20px ${data.color};
+        0 0 5px white,
+        0 0 10px white,
+        0 0 20px white;
+
 }
 
-.wrapper{
-    width:100%;
-    overflow:hidden;
-}
 
-.title{
+#title {
+
     text-align:center;
-    font-size:52px;
+
+    font-size:50px;
+
     margin-bottom:10px;
+
 }
 
-.ticker {
-    display: inline-block;
-    white-space: nowrap;
 
-    ${shouldScroll ? `
-        padding-left:100%;
-        animation:scroll 20s linear infinite;
-    ` : `
-        width:100%;
-        text-align:center;
-    `}
+
+#graveyard {
+
+    height:300px;
+
+    overflow:hidden;
+
+    display:flex;
+
+    justify-content:center;
+
 }
 
-@keyframes scroll{
-    from{
-        transform:translateX(0);
+
+
+#scrollContainer {
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    animation:scrollUp 20s linear infinite;
+
+}
+
+
+
+.pokemon {
+
+    font-size:42px;
+
+    margin:15px 0;
+
+}
+
+
+
+@keyframes scrollUp {
+
+
+    from {
+
+        transform:translateY(100%);
+
     }
-    to{
-        transform:translateX(-100%);
+
+
+    to {
+
+        transform:translateY(-100%);
+
     }
+
 }
+
 
 </style>
 
-<link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
+
+<link href="https://fonts.googleapis.com/css2?family=Merienda&display=swap" rel="stylesheet">
+
 
 </head>
 
+
 <body>
 
-<div class="title">
-☠ Graveyard (${data.pokeloss}) ☠
+
+<div id="title">
+
+☠ Graveyard (0) ☠
+
 </div>
 
-<div class="wrapper">
-    <div class="ticker">
-        ${names || "Nobody has fallen... yet!"}
-    </div>
+
+<div id="graveyard">
+
+<div id="scrollContainer">
+
+<div class="pokemon">
+
+Loading...
+
 </div>
+
+</div>
+
+</div>
+
+
+
+<script>
+
+
+const channel = "${channel}";
+
+
+async function updateGraveyard(){
+
+
+    try {
+
+
+        const response = await fetch(
+            "/shownuzdeaths/data?channel=" + channel
+        );
+
+
+        const data = await response.json();
+
+
+
+        document.body.style.color = data.color;
+
+
+
+        document.getElementById("title").innerHTML =
+            "☠ Graveyard (" + data.count + ") ☠";
+
+
+
+        const container =
+            document.getElementById("scrollContainer");
+
+
+
+        let html = "";
+
+data.names.forEach(function(name) {
+
+    html +=
+        "<div class='pokemon'>☠ " +
+        name +
+        "</div>";
+
+});
+
+if (html === "") {
+
+    html =
+        "<div class='pokemon'>" +
+        "Nobody has fallen... yet!" +
+        "</div>";
+
+}
+
+// Duplicate the list for a seamless scroll
+container.innerHTML = html + html;
+
+
+
+    }
+
+    catch(error){
+
+        console.log(error);
+
+    }
+
+}
+
+
+
+updateGraveyard();
+
+
+setInterval(updateGraveyard,2000);
+
+
+</script>
+
 
 </body>
+
 </html>
+
+
 `);
-});
 
-
-// Set font
-app.get("/setfont", (req, res) => {
-  const channel = req.query.channel?.toLowerCase();
-  const font = req.query.font;
-  if (!channel || !font) return res.send("Missing ?channel= or ?font=");
-
-  const data = getChannelData(channel);
-  data.font = font;
-  saveRecords();
-
-  res.send(`Set font for ${channel} to ${font}`);
-});
+});;
 
 // Show record overlay
 app.get("/record", (req, res) => {
