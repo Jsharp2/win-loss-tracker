@@ -58,6 +58,8 @@ function getChannelData(channel) {
       goodRez: 0,
       badRez: 0,
       percent: 0,
+      if (!records[name].deadPokemon)
+    records[name].deadPokemon = [];
     };
   }
   return records[name];
@@ -278,6 +280,7 @@ app.get("/nuzloss", (req, res) => {
 
   data.runloss += 1;
   data.pokeloss = 0;
+  a.deadPokemon = [];
   saveRecords();
 
   res.send(`Run Loss. F in Chat`);
@@ -289,8 +292,9 @@ app.get("/nuzlossReset", (req, res) => {
 
   const data = getChannelData(channel);
 
-  data.runloss == 0;
+  data.runloss = 0;
   data.pokeloss = 0;
+  data.deadPokemon = [];
   saveRecords();
 
   res.send('Reset Nuzlock Information');
@@ -303,6 +307,8 @@ app.get("/nuzdeaths", (req, res) => {
 
   const data = getChannelData(channel);
   data.pokeloss += 1;
+
+  data.deadPoke.push(death);
   saveRecords();
 
   res.send(`RIP ${death}. o7`);
@@ -314,7 +320,8 @@ app.get("/nuzdeathsreset", (req, res) => {
   if (!channel) return res.send("Missing ?channel=");
 
   const data = getChannelData(channel);
-  data.pokeloss == 0;
+  data.pokeloss = 0;
+  data.deadPokemon = [];
   saveRecords();
 
   res.send('Reset Nuzlock Information');
@@ -379,37 +386,79 @@ const channel = req.query.channel?.toLowerCase();
   }
 
   const safeFont = encodeURIComponent(data.font);
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8" />
-      <meta http-equiv="refresh" content="10">
-      <style>
-        body {
-          margin: 0;
-          padding: 0;
-          background-color: transparent;
-          font-size: 48px;
-          font-family: '${data.font}', sans-serif;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          height: 100vh;
-          color: ${data.color};
-          text-shadow:
-            0 0 5px ${data.color},
-            0 0 10px ${data.color},
-            0 0 20px ${data.color};
-        }
-      </style>
-      <link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
-    </head>
-    <body>
-      Runs Lost: ${data.runloss}
-    </body>
-    </html>
-  `);
+  const names = data.deadPokemon.join(" • ");
+const shouldScroll = data.deadPokemon.length > 4;
+
+res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="refresh" content="10">
+
+<style>
+
+body{
+    margin:0;
+    overflow:hidden;
+    background:transparent;
+    color:${data.color};
+    font-family:'${data.font}',sans-serif;
+    font-size:42px;
+    text-shadow:
+        0 0 5px ${data.color},
+        0 0 10px ${data.color},
+        0 0 20px ${data.color};
+}
+
+.wrapper{
+    width:100%;
+    overflow:hidden;
+}
+
+.title{
+    text-align:center;
+    font-size:52px;
+    margin-bottom:10px;
+}
+
+.ticker{
+    white-space:nowrap;
+    display:inline-block;
+    padding-left:100%;
+    animation:${shouldScroll ? "scroll 20s linear infinite" : "none"};
+}
+
+@keyframes scroll{
+    from{
+        transform:translateX(0);
+    }
+    to{
+        transform:translateX(-100%);
+    }
+}
+
+</style>
+
+<link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="title">
+☠ Graveyard (${data.pokeloss}) ☠
+</div>
+
+<div class="wrapper">
+    <div class="ticker">
+        ${names || "Nobody has fallen... yet!"}
+    </div>
+</div>
+
+</body>
+</html>
+`);
 });
 
 
