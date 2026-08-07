@@ -328,6 +328,7 @@ app.get("/nuzdeathsreset", (req, res) => {
 
 // Show record overlay
 app.get("/shownuzdeaths", (req, res) => {
+
     const channel = req.query.channel?.toLowerCase();
     const raw = req.query.raw === "1";
 
@@ -337,13 +338,10 @@ app.get("/shownuzdeaths", (req, res) => {
     const data = getChannelData(channel);
 
     if (raw) {
-        return res.send(data.deadPokes.join(" • "));
+        return res.send(data.deadPokes.join("\n"));
     }
 
     const safeFont = encodeURIComponent(data.font);
-
-    const names = data.deadPokes.join(" • ");
-    const shouldScroll = names.length > 45;
 
     res.send(`
 <!DOCTYPE html>
@@ -360,56 +358,72 @@ body{
     overflow:hidden;
     background:transparent;
     color:${data.color};
-    font-family:'${data.font}', sans-serif;
+    font-family:'${data.font}',sans-serif;
     text-shadow:
         0 0 5px ${data.color},
         0 0 10px ${data.color},
         0 0 20px ${data.color};
 }
 
-.title{
-    font-size:50px;
+#title{
+
     text-align:center;
-    margin-bottom:10px;
+    font-size:52px;
+    margin-bottom:15px;
+
 }
 
-.wrapper{
+#graveyard{
+
+    position:relative;
     width:100%;
+    height:450px;
     overflow:hidden;
+
+    mask-image:linear-gradient(
+        to bottom,
+        transparent,
+        black 10%,
+        black 90%,
+        transparent
+    );
+
+    -webkit-mask-image:linear-gradient(
+        to bottom,
+        transparent,
+        black 10%,
+        black 90%,
+        transparent
+    );
+
 }
 
-.ticker{
-    display:flex;
-    flex-direction:row;
-    white-space:nowrap;
-    width:max-content;
-}
+#scrollContainer{
 
-.ticker span{
-    display:inline-block;
-    padding-right:100px;
-    font-size:42px;
-}
-
-${shouldScroll ? `
-.ticker{
-    animation:scroll 18s linear infinite;
-}
-` : `
-.ticker{
+    position:absolute;
     width:100%;
-    justify-content:center;
-}
-`}
 
-@keyframes scroll{
+    animation:scrollUp 30s linear infinite;
+
+}
+
+.pokemon{
+
+    width:100%;
+    text-align:center;
+    font-size:42px;
+    margin:18px 0;
+
+}
+
+@keyframes scrollUp{
 
     from{
-        transform:translateX(0);
+        transform:translateY(100%);
     }
 
     to{
-        transform:translateX(-33.333%);
+        transform:translateY(-100%);
     }
 
 }
@@ -422,41 +436,75 @@ ${shouldScroll ? `
 
 <body>
 
-<div class="title">
+<div id="title">
 ☠ Graveyard (${data.pokeloss}) ☠
 </div>
 
-<div class="wrapper">
-
-${shouldScroll ? `
-
-<div class="ticker">
-
-<span>${names}</span>
-
-<span>${names}</span>
-
-<span>${names}</span>
-
+<div id="graveyard">
+    <div id="scrollContainer"></div>
 </div>
 
-` : `
+<script>
 
-<div class="ticker">
+const names = ${JSON.stringify(data.deadPokes)};
 
-<span>${names || "Nobody has fallen... yet!"}</span>
+const container = document.getElementById("scrollContainer");
 
-</div>
+if(names.length === 0){
 
-`}
+    container.innerHTML =
+        "<div class='pokemon'>Nobody has fallen... yet!</div>";
 
-</div>
+}
+else{
+
+    // First copy
+    names.forEach(function(name){
+
+        const div = document.createElement("div");
+
+        div.className = "pokemon";
+
+        div.textContent = "☠ " + name;
+
+        container.appendChild(div);
+
+    });
+
+    // Spacer
+    const spacer = document.createElement("div");
+
+    spacer.style.height = "250px";
+
+    container.appendChild(spacer);
+
+    // Second copy
+    names.forEach(function(name){
+
+        const div = document.createElement("div");
+
+        div.className = "pokemon";
+
+        div.textContent = "☠ " + name;
+
+        container.appendChild(div);
+
+    });
+
+    // Scroll slower as the list grows
+    const speed = Math.max(20, names.length * 3);
+
+    container.style.animationDuration = speed + "s";
+
+}
+
+</script>
 
 </body>
 
 </html>
-
 `);
+
 });
 
 // Show record overlay
