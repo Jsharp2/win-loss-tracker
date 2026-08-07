@@ -11,22 +11,38 @@
 <style>
 
 body{
+
     margin:0;
     overflow:hidden;
     background:transparent;
+
 }
 
 #title{
+
     text-align:center;
+
     font-size:52px;
+
     margin-bottom:15px;
+
 }
 
 #graveyard{
+
     position:relative;
+
     width:100%;
+
     height:450px;
+
     overflow:hidden;
+
+    /*
+     * Fade the top and bottom of the
+     * graveyard so names smoothly
+     * appear and disappear.
+     */
 
     mask-image:linear-gradient(
         to bottom,
@@ -43,43 +59,82 @@ body{
         black 90%,
         transparent
     );
+
 }
 
-#scrollContainer {
-    position: absolute;
-    width: 100%;
-    left: 0;
-    top: 0;
-    will-change: transform;
+#scrollContainer{
+
+    position:absolute;
+
+    width:100%;
+
+    left:0;
+
+    top:0;
+
+    will-change:transform;
+
 }
 
-.list {
-    width: 100%;
+.list{
+
+    width:100%;
+
 }
 
-.pokemon {
-    width: 100%;
-    text-align: center;
-    font-size: 42px;
-    margin: 18px 0;
+.pokemon{
+
+    width:100%;
+
+    text-align:center;
+
+    font-size:42px;
+
+    /*
+     * IMPORTANT:
+     *
+     * Use padding instead of margin.
+     * This prevents margin collapsing and
+     * makes the list height predictable.
+     */
+
+    padding:18px 0;
+
+    box-sizing:border-box;
+
 }
 
-@keyframes scrollUp {
-    from {
-        transform: translateY(0);
+@keyframes scrollUp{
+
+    from{
+
+        transform:translateY(0);
+
     }
 
-    to {
-        transform: translateY(calc(-4 * var(--scroll-distance)));
+    to{
+
+        transform:
+            translateY(calc(-1 * var(--scroll-distance)));
+
     }
+
 }
+
 </style>
 
 </head>
 
+
 <body>
 
-<div id="title">Loading...</div>
+
+<div id="title">
+
+Loading...
+
+</div>
+
 
 <div id="graveyard">
 
@@ -93,129 +148,201 @@ body{
 
 </div>
 
-const params = new URLSearchParams(window.location.search);
 
-const channel = params.get("channel");
+<script>
+
+
+const params =
+    new URLSearchParams(window.location.search);
+
+
+const channel =
+    params.get("channel");
+
 
 let previousJSON = "";
+
+
 
 async function updateGraveyard(){
 
-    let previousJSON = "";
 
-let previousJSON = "";
-
-async function updateGraveyard() {
-
-    try {
-
-        const response = await fetch(
-            "/shownuzdeaths/data?channel=" + channel
-        );
-
-        const data = await response.json();
-
-        const json = JSON.stringify(data);
-
-        // Don't rebuild the animation if nothing changed
-        if (json === previousJSON)
-            return;
-
-        previousJSON = json;
-
-        document.body.style.color = data.color;
-
-        document.body.style.fontFamily =
-            data.font + ", sans-serif";
-
-        document.getElementById("title").textContent =
-            "☠ Graveyard (" + data.count + ") ☠";
+    try{
 
 
-        const container =
-            document.getElementById("scrollContainer");
-
-        const list1 =
-            document.getElementById("list1");
-
-        const list2 =
-            document.getElementById("list2");
+        const response =
+            await fetch(
+                "/shownuzdeaths/data?channel=" +
+                encodeURIComponent(channel)
+            );
 
 
-        // Stop the current animation
-        container.style.animation = "none";
+        const data =
+            await response.json();
 
 
-        // Clear both lists
-        list1.innerHTML = "";
-        list2.innerHTML = "";
 
+        const json =
+            JSON.stringify(data);
 
-        if (data.names.length === 0) {
-
-            const empty1 =
-                document.createElement("div");
-
-            empty1.className = "pokemon";
-
-            empty1.textContent =
-                "Nobody has fallen... yet!";
-
-            list1.appendChild(empty1);
-
-
-            const empty2 =
-                document.createElement("div");
-
-            empty2.className = "pokemon";
-
-            empty2.textContent =
-                "Nobody has fallen... yet!";
-
-            list2.appendChild(empty2);
-
-        }
-        else {
-
-            data.names.forEach(function(name) {
-
-                const div =
-                    document.createElement("div");
-
-                div.className = "pokemon";
-
-                div.textContent = "☠ " + name;
-
-                list1.appendChild(div);
-
-            });
-
-
-            data.names.forEach(function(name) {
-
-                const div =
-                    document.createElement("div");
-
-                div.className = "pokemon";
-
-                div.textContent = "☠ " + name;
-
-                list2.appendChild(div);
-
-            });
-
-        }
 
 
         /*
-         * Wait until the browser has actually
-         * rendered the lists so we can measure them.
+         * If absolutely nothing changed,
+         * leave the animation alone.
          */
-        requestAnimationFrame(function() {
+
+        if(json === previousJSON)
+            return;
+
+
+
+        previousJSON = json;
+
+
+
+        /*
+         * Apply the user's overlay settings.
+         */
+
+        document.body.style.color =
+            data.color;
+
+
+        document.body.style.fontFamily =
+            "'" + data.font + "', sans-serif";
+
+
+
+        document.getElementById("title").textContent =
+            "☠ Graveyard (" +
+            data.count +
+            ") ☠";
+
+
+
+        const container =
+            document.getElementById(
+                "scrollContainer"
+            );
+
+
+        const list1 =
+            document.getElementById(
+                "list1"
+            );
+
+
+        const list2 =
+            document.getElementById(
+                "list2"
+            );
+
+
+
+        /*
+         * Stop the animation while we
+         * rebuild the lists.
+         */
+
+        container.style.animation =
+            "none";
+
+
+
+        /*
+         * Clear both lists.
+         */
+
+        list1.innerHTML = "";
+
+        list2.innerHTML = "";
+
+
+
+        /*
+         * Build both lists.
+         */
+
+        if(data.names.length === 0){
+
+
+            addPokemon(
+                list1,
+                "Nobody has fallen... yet!"
+            );
+
+
+            addPokemon(
+                list2,
+                "Nobody has fallen... yet!"
+            );
+
+        }
+        else{
+
+
+            data.names.forEach(function(name){
+
+                addPokemon(
+                    list1,
+                    name
+                );
+
+            });
+
+
+            data.names.forEach(function(name){
+
+                addPokemon(
+                    list2,
+                    name
+                );
+
+            });
+
+        }
+
+
+
+        /*
+         * Wait for the browser to finish
+         * laying everything out.
+         */
+
+        requestAnimationFrame(function(){
+
+
+            /*
+             * Get the actual screen position
+             * of each list.
+             */
+
+            const firstPosition =
+                list1.getBoundingClientRect();
+
+
+            const secondPosition =
+                list2.getBoundingClientRect();
+
+
+
+            /*
+             * The exact distance between
+             * the beginning of list 1 and
+             * the beginning of list 2.
+             */
 
             const distance =
-                list2.offsetTop - list1.offsetTop;
+                secondPosition.top -
+                firstPosition.top;
 
+
+
+            /*
+             * Tell CSS the exact distance
+             * it needs to travel.
+             */
 
             container.style.setProperty(
                 "--scroll-distance",
@@ -223,51 +350,127 @@ async function updateGraveyard() {
             );
 
 
+
             /*
-             * Adjust speed based on the actual
-             * amount of content.
+             * Choose the speed based on
+             * the amount of content.
              *
-             * More Pokémon = longer animation.
+             * This is pixels per second.
              */
-            const speed =
-                Math.max(15, distance / 35);
+
+            const pixelsPerSecond = 35;
+
+
+            const duration =
+                distance /
+                pixelsPerSecond;
+
+
+
+            /*
+             * Don't allow extremely short
+             * animations.
+             */
+
+            const finalDuration =
+                Math.max(
+                    15,
+                    duration
+                );
+
 
 
             /*
              * Force the browser to acknowledge
-             * the reset before starting again.
+             * the animation reset.
              */
+
             void container.offsetWidth;
 
 
+
+            /*
+             * Start the animation.
+             */
+
             container.style.animation =
                 "scrollUp " +
-                speed +
+                finalDuration +
                 "s linear infinite";
+
 
         });
 
+
     }
-    catch (error) {
+    catch(error){
+
 
         console.error(
             "Failed to update graveyard:",
             error
         );
 
+
     }
 
 }
 
 
+
+/*
+ * Helper function for creating
+ * each Pokémon entry.
+ */
+
+function addPokemon(
+    container,
+    name
+){
+
+    const div =
+        document.createElement(
+            "div"
+        );
+
+
+    div.className =
+        "pokemon";
+
+
+    div.textContent =
+        "☠ " + name;
+
+
+    container.appendChild(
+        div
+    );
+
+}
+
+
+
+/*
+ * Initial load.
+ */
+
 updateGraveyard();
+
+
+
+/*
+ * Check for new deaths every
+ * two seconds.
+ */
 
 setInterval(
     updateGraveyard,
     2000
 );
 
+
 </script>
+
 
 </body>
 
