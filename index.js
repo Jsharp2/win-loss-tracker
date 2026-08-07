@@ -58,7 +58,7 @@ function getChannelData(channel) {
       goodRez: 0,
       badRez: 0,
       percent: 0,
-      deadPokemon = [];
+      deadPokemon = [],
     };
   }
   return records[name];
