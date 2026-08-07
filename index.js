@@ -328,48 +328,135 @@ app.get("/nuzdeathsreset", (req, res) => {
 
 // Show record overlay
 app.get("/shownuzdeaths", (req, res) => {
-  const channel = req.query.channel?.toLowerCase();
-  const raw = req.query.raw === "1";
-  if (!channel) return res.send("Missing ?channel=");
+    const channel = req.query.channel?.toLowerCase();
+    const raw = req.query.raw === "1";
 
-  const data = getChannelData(channel);
+    if (!channel)
+        return res.send("Missing ?channel=");
 
-  if (raw) {
-    return res.send(`L Plus Ratio`);
-  }
+    const data = getChannelData(channel);
 
-  const safeFont = encodeURIComponent(data.font);
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8" />
-      <meta http-equiv="refresh" content="10">
-      <style>
-        body {
-          margin: 0;
-          padding: 0;
-          background-color: transparent;
-          font-size: 48px;
-          font-family: '${data.font}', sans-serif;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          height: 100vh;
-          color: ${data.color};
-          text-shadow:
-            0 0 5px ${data.color},
-            0 0 10px ${data.color},
-            0 0 20px ${data.color};
-        }
-      </style>
-      <link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
-    </head>
-    <body>
-      Graveyard: ${data.pokeloss}
-    </body>
-    </html>
-  `);
+    if (raw) {
+        return res.send(data.deadPokes.join(" • "));
+    }
+
+    const safeFont = encodeURIComponent(data.font);
+
+    const names = data.deadPokes.join(" • ");
+    const shouldScroll = names.length > 45;
+
+    res.send(`
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+
+<style>
+
+body{
+    margin:0;
+    overflow:hidden;
+    background:transparent;
+    color:${data.color};
+    font-family:'${data.font}', sans-serif;
+    text-shadow:
+        0 0 5px ${data.color},
+        0 0 10px ${data.color},
+        0 0 20px ${data.color};
+}
+
+.title{
+    font-size:50px;
+    text-align:center;
+    margin-bottom:10px;
+}
+
+.wrapper{
+    width:100%;
+    overflow:hidden;
+}
+
+.ticker{
+    display:flex;
+    flex-direction:row;
+    white-space:nowrap;
+    width:max-content;
+}
+
+.ticker span{
+    display:inline-block;
+    padding-right:100px;
+    font-size:42px;
+}
+
+${shouldScroll ? `
+.ticker{
+    animation:scroll 18s linear infinite;
+}
+` : `
+.ticker{
+    width:100%;
+    justify-content:center;
+}
+`}
+
+@keyframes scroll{
+
+    from{
+        transform:translateX(0);
+    }
+
+    to{
+        transform:translateX(-33.333%);
+    }
+
+}
+
+</style>
+
+<link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="title">
+☠ Graveyard (${data.pokeloss}) ☠
+</div>
+
+<div class="wrapper">
+
+${shouldScroll ? `
+
+<div class="ticker">
+
+<span>${names}</span>
+
+<span>${names}</span>
+
+<span>${names}</span>
+
+</div>
+
+` : `
+
+<div class="ticker">
+
+<span>${names || "Nobody has fallen... yet!"}</span>
+
+</div>
+
+`}
+
+</div>
+
+</body>
+
+</html>
+
+`);
 });
 
 // Show record overlay
@@ -421,11 +508,17 @@ body{
     margin-bottom:10px;
 }
 
-.ticker{
-    white-space:nowrap;
-    display:inline-block;
-    padding-left:100%;
-    animation:${shouldScroll ? "scroll 20s linear infinite" : "none"};
+.ticker {
+    display: inline-block;
+    white-space: nowrap;
+
+    ${shouldScroll ? `
+        padding-left:100%;
+        animation:scroll 20s linear infinite;
+    ` : `
+        width:100%;
+        text-align:center;
+    `}
 }
 
 @keyframes scroll{
