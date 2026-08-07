@@ -4,8 +4,6 @@ const fs = require("fs");
 const axios = require("axios");
 const path = require("path");
 
-app.use(express.static(path.join(__dirname, "public")));
-
 const TWITCH_CLIENT_ID = process.env.TWITCH_CLIENT_ID;
 const TWITCH_CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET;
 const TWITCH_ACCESS_TOKEN = process.env.TWITCH_ACCESS_TOKEN;
@@ -31,6 +29,7 @@ function saveTokens() {
 
 const app = express();
 app.use(cors());
+app.use(express.static(path.join(__dirname, "public")));
 
 let records = {};
 let activePolls = {};
