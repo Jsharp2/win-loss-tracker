@@ -529,97 +529,42 @@ setInterval(loadData,2000);
 
 // Show record overlay
 app.get("/shownuzlosses", (req, res) => {
-const channel = req.query.channel?.toLowerCase();
-  const raw = req.query.raw === "1";
-  if (!channel) return res.send("Missing ?channel=");
+const channel = req.query.channel?.toLowerCase();const raw = req.query.raw === "1";if (!channel) return res.send("Missing ?channel=");
 
-  const data = getChannelData(channel);
+const data = getChannelData(channel);
 
-  if (raw) {
-    return res.send(`Record: ${data.wins}W - ${data.losses}L`);
-  }
+if (raw) {return res.send(Record: ${data.wins}W - ${data.losses}L);}
 
-  const safeFont = encodeURIComponent(data.font);
-  const names = data.deadPokes.join(" • ");
-const shouldScroll = data.deadPokes.length > 4;
-
-res.send(`
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<meta http-equiv="refresh" content="10">
-
-<style>
-
-body{
-    margin:0;
-    overflow:hidden;
-    background:transparent;
-    color:${data.color};
-    font-family:'${data.font}',sans-serif;
-    font-size:42px;
-    text-shadow:
-        0 0 5px ${data.color},
-        0 0 10px ${data.color},
-        0 0 20px ${data.color};
-}
-
-.wrapper{
-    width:100%;
-    overflow:hidden;
-}
-
-.title{
-    text-align:center;
-    font-size:52px;
-    margin-bottom:10px;
-}
-
-.ticker {
-    display: inline-block;
-    white-space: nowrap;
-
-    ${shouldScroll ? `
-        padding-left:100%;
-        animation:scroll 20s linear infinite;
-    ` : `
-        width:100%;
-        text-align:center;
-    `}
-}
-
-@keyframes scroll{
-    from{
-        transform:translateX(0);
-    }
-    to{
-        transform:translateX(-100%);
-    }
-}
-
-</style>
-
-<link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
-
-</head>
-
-<body>
-
-<div class="title">
-☠ Graveyard (${data.pokeloss}) ☠
-</div>
-
-<div class="wrapper">
-    <div class="ticker">
-        ${names || "Nobody has fallen... yet!"}
-    </div>
-</div>
-
-</body>
-</html>
-`);
-});
+const safeFont = encodeURIComponent(data.font);res.send(    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8" />
+      <meta http-equiv="refresh" content="10">
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          background-color: transparent;
+          font-size: 48px;
+          font-family: '${data.font}', sans-serif;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          color: ${data.color};
+          text-shadow:
+            0 0 5px ${data.color},
+            0 0 10px ${data.color},
+            0 0 20px ${data.color};
+        }
+      </style>
+      <link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
+    </head>
+    <body>
+      Runs Lost: ${data.runloss}
+    </body>
+    </html>
+ );});
 
 
 // Set font
