@@ -346,115 +346,246 @@ app.get("/shownuzdeaths", (req, res) => {
     const shouldScroll = names.length > 45;
 
     res.send(`
+
 <!DOCTYPE html>
+
 <html>
 
 <head>
 
 <meta charset="UTF-8">
 
+
 <style>
 
-body{
+body {
+
     margin:0;
     overflow:hidden;
     background:transparent;
-    color:${data.color};
-    font-family:'${data.font}', sans-serif;
+
+    color:white;
+
+    font-family:Merienda, sans-serif;
+
     text-shadow:
-        0 0 5px ${data.color},
-        0 0 10px ${data.color},
-        0 0 20px ${data.color};
+        0 0 5px white,
+        0 0 10px white,
+        0 0 20px white;
+
 }
 
-.title{
-    font-size:50px;
+
+#title {
+
     text-align:center;
+
+    font-size:50px;
+
     margin-bottom:10px;
+
 }
 
-.wrapper{
-    width:100%;
+
+
+#graveyard {
+
+    height:300px;
+
     overflow:hidden;
-}
 
-.ticker{
     display:flex;
-    flex-direction:row;
-    white-space:nowrap;
-    width:max-content;
-}
 
-.ticker span{
-    display:inline-block;
-    padding-right:100px;
-    font-size:42px;
-}
-
-${shouldScroll ? `
-.ticker{
-    animation:scroll 18s linear infinite;
-}
-` : `
-.ticker{
-    width:100%;
     justify-content:center;
-}
-`}
-
-@keyframes scroll{
-
-    from{
-        transform:translateX(0);
-    }
-
-    to{
-        transform:translateX(-33.333%);
-    }
 
 }
+
+
+
+#scrollContainer {
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    animation:scrollUp 20s linear infinite;
+
+}
+
+
+
+.pokemon {
+
+    font-size:42px;
+
+    margin:15px 0;
+
+}
+
+
+
+@keyframes scrollUp {
+
+
+    from {
+
+        transform:translateY(100%);
+
+    }
+
+
+    to {
+
+        transform:translateY(-100%);
+
+    }
+
+}
+
 
 </style>
 
-<link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
+
+<link href="https://fonts.googleapis.com/css2?family=Merienda&display=swap" rel="stylesheet">
+
 
 </head>
 
+
 <body>
 
-<div class="title">
-☠ Graveyard (${data.pokeloss}) ☠
-</div>
 
-<div class="wrapper">
+<div id="title">
 
-${shouldScroll ? `
-
-<div class="ticker">
-
-<span>${names}</span>
-
-<span>${names}</span>
-
-<span>${names}</span>
+☠ Graveyard (0) ☠
 
 </div>
 
-` : `
 
-<div class="ticker">
+<div id="graveyard">
 
-<span>${names || "Nobody has fallen... yet!"}</span>
+<div id="scrollContainer">
+
+<div class="pokemon">
+
+Loading...
 
 </div>
 
-`}
+</div>
 
 </div>
+
+
+
+<script>
+
+
+const channel = "${channel}";
+
+
+async function updateGraveyard(){
+
+
+    try {
+
+
+        const response = await fetch(
+            "/shownuzdeaths/data?channel=" + channel
+        );
+
+
+        const data = await response.json();
+
+
+
+        document.body.style.color = data.color;
+
+
+
+        document.getElementById("title").innerHTML =
+            "☠ Graveyard (" + data.count + ") ☠";
+
+
+
+        const container =
+            document.getElementById("scrollContainer");
+
+
+
+        let html = "";
+
+
+
+        data.names.forEach(name => {
+
+
+            html += `
+
+                <div class="pokemon">
+
+                    ☠ ${name}
+
+                </div>
+
+            `;
+
+
+        });
+
+
+
+        if(html === ""){
+
+
+            html = `
+
+                <div class="pokemon">
+
+                    Nobody has fallen... yet!
+
+                </div>
+
+            `;
+
+
+        }
+
+
+
+        // Duplicate list for seamless looping
+
+        container.innerHTML = html + html;
+
+
+
+    }
+
+    catch(error){
+
+        console.log(error);
+
+    }
+
+}
+
+
+
+updateGraveyard();
+
+
+setInterval(updateGraveyard,2000);
+
+
+</script>
+
 
 </body>
 
 </html>
+
 
 `);
 });
