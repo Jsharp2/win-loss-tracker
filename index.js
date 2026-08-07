@@ -58,8 +58,7 @@ function getChannelData(channel) {
       goodRez: 0,
       badRez: 0,
       percent: 0,
-      if (!records[name].deadPokemon)
-    records[name].deadPokemon = [];
+      records[name].deadPokemon = [];
     };
   }
   return records[name];
