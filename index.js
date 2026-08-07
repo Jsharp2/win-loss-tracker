@@ -2,6 +2,9 @@ const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
 const axios = require("axios");
+const path = require("path");
+
+app.use(express.static(path.join(__dirname, "public")));
 
 const TWITCH_CLIENT_ID = process.env.TWITCH_CLIENT_ID;
 const TWITCH_CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET;
@@ -324,6 +327,24 @@ app.get("/nuzdeathsreset", (req, res) => {
   saveRecords();
 
   res.send('Reset Nuzlock Information');
+});
+
+app.get("/shownuzdeaths/data", (req, res) => {
+
+    const channel = req.query.channel?.toLowerCase();
+
+    if (!channel)
+        return res.status(400).json({ error: "Missing ?channel=" });
+
+    const data = getChannelData(channel);
+
+    res.json({
+        count: data.pokeloss,
+        names: data.deadPokes,
+        color: data.color,
+        font: data.font
+    });
+
 });
 
 // Show record overlay
