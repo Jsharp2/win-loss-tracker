@@ -326,27 +326,36 @@ app.get("/nuzdeathsreset", (req, res) => {
   res.send('Reset Nuzlock Information');
 });
 
+app.get("/shownuzdeaths/data", (req, res) => {
+
+    const channel = req.query.channel?.toLowerCase();
+
+    if (!channel)
+        return res.status(400).json({ error: "Missing ?channel=" });
+
+    const data = getChannelData(channel);
+
+    res.json({
+        count: data.pokeloss,
+        names: data.deadPokes,
+        color: data.color,
+        font: data.font
+    });
+
+});
+
 // Show record overlay
 app.get("/shownuzdeaths", (req, res) => {
+
     const channel = req.query.channel?.toLowerCase();
-    const raw = req.query.raw === "1";
 
     if (!channel)
         return res.send("Missing ?channel=");
 
-    const data = getChannelData(channel);
-
-    if (raw) {
-        return res.send(data.deadPokes.join(" • "));
-    }
-
-    const safeFont = encodeURIComponent(data.font);
-
-    const names = data.deadPokes.join(" • ");
-    const shouldScroll = names.length > 45;
-
     res.send(`
+
 <!DOCTYPE html>
+
 <html>
 
 <head>
@@ -356,107 +365,166 @@ app.get("/shownuzdeaths", (req, res) => {
 <style>
 
 body{
+
     margin:0;
     overflow:hidden;
     background:transparent;
-    color:${data.color};
-    font-family:'${data.font}', sans-serif;
-    text-shadow:
-        0 0 5px ${data.color},
-        0 0 10px ${data.color},
-        0 0 20px ${data.color};
+    color:white;
+    font-family:Merienda,sans-serif;
+
 }
 
-.title{
-    font-size:50px;
+#title{
+
     text-align:center;
+    font-size:52px;
     margin-bottom:10px;
+
 }
 
-.wrapper{
+#tickerWrapper{
+
     width:100%;
     overflow:hidden;
+
 }
 
-.ticker{
+#ticker{
+
     display:flex;
-    flex-direction:row;
     white-space:nowrap;
     width:max-content;
+
 }
 
-.ticker span{
+#ticker span{
+
     display:inline-block;
     padding-right:100px;
     font-size:42px;
+
 }
 
-${shouldScroll ? `
-.ticker{
+.scroll{
+
     animation:scroll 18s linear infinite;
+
 }
-` : `
-.ticker{
-    width:100%;
-    justify-content:center;
-}
-`}
 
 @keyframes scroll{
 
     from{
+
         transform:translateX(0);
+
     }
 
     to{
+
         transform:translateX(-33.333%);
+
     }
 
 }
 
 </style>
 
-<link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Merienda&display=swap" rel="stylesheet">
 
 </head>
 
 <body>
 
-<div class="title">
-☠ Graveyard (${data.pokeloss}) ☠
-</div>
+<div id="title">
 
-<div class="wrapper">
-
-${shouldScroll ? `
-
-<div class="ticker">
-
-<span>${names}</span>
-
-<span>${names}</span>
-
-<span>${names}</span>
+☠ Graveyard (0) ☠
 
 </div>
 
-` : `
+<div id="tickerWrapper">
 
-<div class="ticker">
+<div id="ticker">
 
-<span>${names || "Nobody has fallen... yet!"}</span>
+<span>Loading...</span>
+
+</div>
 
 </div>
 
-`}
+<script>
 
-</div>
+const channel = "${channel}";
+
+let previousData = "";
+
+async function loadData(){
+
+    try{
+
+        const response = await fetch("/shownuzdeaths/data?channel=" + channel);
+
+        const data = await response.json();
+
+        const currentData = JSON.stringify(data);
+
+        if(currentData === previousData)
+            return;
+
+        previousData = currentData;
+
+        document.body.style.color = data.color;
+        document.body.style.fontFamily = data.font + ", sans-serif";
+
+        document.getElementById("title").innerHTML =
+            "☠ Graveyard (" + data.count + ") ☠";
+
+        const ticker = document.getElementById("ticker");
+
+        ticker.className = "";
+
+        const names = data.names.join(" • ");
+
+        if(names.length <= 45){
+
+            ticker.innerHTML =
+                "<span>" +
+                (names || "Nobody has fallen... yet!") +
+                "</span>";
+
+        }
+        else{
+
+            ticker.innerHTML =
+                "<span>" + names + "</span>" +
+                "<span>" + names + "</span>" +
+                "<span>" + names + "</span>";
+
+            ticker.classList.add("scroll");
+
+        }
+
+    }
+
+    catch(err){
+
+        console.log(err);
+
+    }
+
+}
+
+loadData();
+
+setInterval(loadData,2000);
+
+</script>
 
 </body>
 
 </html>
 
 `);
+
 });
 
 // Show record overlay
