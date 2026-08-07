@@ -352,6 +352,7 @@ app.get("/shownuzdeaths", (req, res) => {
     if (!channel)
         return res.send("Missing ?channel=");
 
+
     res.send(`
 
 <!DOCTYPE html>
@@ -362,78 +363,107 @@ app.get("/shownuzdeaths", (req, res) => {
 
 <meta charset="UTF-8">
 
+
 <style>
 
-body{
+body {
 
     margin:0;
     overflow:hidden;
     background:transparent;
+
     color:white;
-    font-family:Merienda,sans-serif;
+
+    font-family:Merienda, sans-serif;
+
+    text-shadow:
+        0 0 5px white,
+        0 0 10px white,
+        0 0 20px white;
 
 }
 
-#title{
+
+#title {
 
     text-align:center;
-    font-size:52px;
+
+    font-size:50px;
+
     margin-bottom:10px;
 
 }
 
-#tickerWrapper{
 
-    width:100%;
+
+#graveyard {
+
+    height:300px;
+
     overflow:hidden;
 
+    display:flex;
+
+    justify-content:center;
+
 }
 
-#ticker{
+
+
+#scrollContainer {
 
     display:flex;
-    white-space:nowrap;
-    width:max-content;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    animation:scrollUp 20s linear infinite;
 
 }
 
-#ticker span{
 
-    display:inline-block;
-    padding-right:100px;
+
+.pokemon {
+
     font-size:42px;
 
-}
-
-.scroll{
-
-    animation:scroll 18s linear infinite;
+    margin:15px 0;
 
 }
 
-@keyframes scroll{
 
-    from{
 
-        transform:translateX(0);
+@keyframes scrollUp {
+
+
+    from {
+
+        transform:translateY(100%);
 
     }
 
-    to{
 
-        transform:translateX(-33.333%);
+    to {
+
+        transform:translateY(-100%);
 
     }
 
 }
+
 
 </style>
 
+
 <link href="https://fonts.googleapis.com/css2?family=Merienda&display=swap" rel="stylesheet">
+
 
 </head>
 
+
 <body>
+
 
 <div id="title">
 
@@ -441,87 +471,129 @@ body{
 
 </div>
 
-<div id="tickerWrapper">
 
-<div id="ticker">
+<div id="graveyard">
 
-<span>Loading...</span>
+<div id="scrollContainer">
+
+<div class="pokemon">
+
+Loading...
 
 </div>
 
 </div>
+
+</div>
+
+
 
 <script>
 
+
 const channel = "${channel}";
 
-let previousData = "";
 
-async function loadData(){
+async function updateGraveyard(){
 
-    try{
 
-        const response = await fetch("/shownuzdeaths/data?channel=" + channel);
+    try {
+
+
+        const response = await fetch(
+            "/shownuzdeaths/data?channel=" + channel
+        );
+
 
         const data = await response.json();
 
-        const currentData = JSON.stringify(data);
 
-        if(currentData === previousData)
-            return;
-
-        previousData = currentData;
 
         document.body.style.color = data.color;
-        document.body.style.fontFamily = data.font + ", sans-serif";
+
+
 
         document.getElementById("title").innerHTML =
             "☠ Graveyard (" + data.count + ") ☠";
 
-        const ticker = document.getElementById("ticker");
 
-        ticker.className = "";
 
-        const names = data.names.join(" • ");
+        const container =
+            document.getElementById("scrollContainer");
 
-        if(names.length <= 45){
 
-            ticker.innerHTML =
-                "<span>" +
-                (names || "Nobody has fallen... yet!") +
-                "</span>";
+
+        let html = "";
+
+
+
+        data.names.forEach(name => {
+
+
+            html += `
+
+                <div class="pokemon">
+
+                    ☠ ${name}
+
+                </div>
+
+            `;
+
+
+        });
+
+
+
+        if(html === ""){
+
+
+            html = `
+
+                <div class="pokemon">
+
+                    Nobody has fallen... yet!
+
+                </div>
+
+            `;
+
 
         }
-        else{
 
-            ticker.innerHTML =
-                "<span>" + names + "</span>" +
-                "<span>" + names + "</span>" +
-                "<span>" + names + "</span>";
 
-            ticker.classList.add("scroll");
 
-        }
+        // Duplicate list for seamless looping
+
+        container.innerHTML = html + html;
+
+
 
     }
 
-    catch(err){
+    catch(error){
 
-        console.log(err);
+        console.log(error);
 
     }
 
 }
 
-loadData();
 
-setInterval(loadData,2000);
+
+updateGraveyard();
+
+
+setInterval(updateGraveyard,2000);
+
 
 </script>
+
 
 </body>
 
 </html>
+
 
 `);
 
