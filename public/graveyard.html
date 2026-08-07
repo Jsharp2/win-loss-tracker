@@ -1,50 +1,50 @@
 <!DOCTYPE html>
-
 <html>
 
 <head>
 
 <meta charset="UTF-8">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-
 <style>
 
-body{
+body {
 
-    margin:0;
-    overflow:hidden;
-    background:transparent;
+    margin: 0;
 
-}
+    overflow: hidden;
 
-#title{
-
-    text-align:center;
-
-    font-size:52px;
-
-    margin-bottom:15px;
+    background: transparent;
 
 }
 
-#graveyard{
 
-    position:relative;
+#title {
 
-    width:100%;
+    text-align: center;
 
-    height:450px;
+    font-size: 52px;
 
-    overflow:hidden;
+    margin-bottom: 15px;
+
+}
+
+
+#graveyard {
+
+    position: relative;
+
+    width: 100%;
+
+    height: 450px;
+
+    overflow: hidden;
+
 
     /*
-     * Fade the top and bottom of the
-     * graveyard so names smoothly
-     * appear and disappear.
+     * Fade the top and bottom.
      */
 
-    mask-image:linear-gradient(
+    mask-image: linear-gradient(
         to bottom,
         transparent,
         black 10%,
@@ -52,7 +52,7 @@ body{
         transparent
     );
 
-    -webkit-mask-image:linear-gradient(
+    -webkit-mask-image: linear-gradient(
         to bottom,
         transparent,
         black 10%,
@@ -62,57 +62,51 @@ body{
 
 }
 
-#scrollContainer{
 
-    position:absolute;
+#scrollContainer {
 
-    width:100%;
+    position: absolute;
 
-    left:0;
+    width: 100%;
 
-    top:0;
+    left: 0;
 
-    will-change:transform;
+    top: 0;
 
-}
-
-.list{
-
-    width:100%;
+    will-change: transform;
 
 }
 
-.pokemon{
 
-    width:100%;
+.pokemon {
 
-    text-align:center;
+    width: 100%;
 
-    font-size:42px;
+    text-align: center;
+
+    font-size: 42px;
 
     /*
-     * IMPORTANT:
-     *
-     * Use padding instead of margin.
-     * This prevents margin collapsing and
-     * makes the list height predictable.
+     * Use padding instead of margin so
+     * every Pokémon has predictable height.
      */
 
-    padding:18px 0;
+    padding: 18px 0;
 
-    box-sizing:border-box;
+    box-sizing: border-box;
 
 }
 
-@keyframes scrollUp{
 
-    from{
+@keyframes scrollUp {
 
-        transform:translateY(0);
+    from {
+
+        transform: translateY(0);
 
     }
 
-    to{
+    to {
 
         transform:
             translateY(calc(-1 * var(--scroll-distance)));
@@ -138,13 +132,7 @@ Loading...
 
 <div id="graveyard">
 
-    <div id="scrollContainer">
-
-        <div id="list1" class="list"></div>
-
-        <div id="list2" class="list"></div>
-
-    </div>
+    <div id="scrollContainer"></div>
 
 </div>
 
@@ -164,10 +152,10 @@ let previousJSON = "";
 
 
 
-async function updateGraveyard(){
+async function updateGraveyard() {
 
 
-    try{
+    try {
 
 
         const response =
@@ -181,20 +169,20 @@ async function updateGraveyard(){
             await response.json();
 
 
-
         const json =
             JSON.stringify(data);
 
 
-
         /*
-         * If absolutely nothing changed,
-         * leave the animation alone.
+         * Don't rebuild the animation unless
+         * the actual data changed.
          */
 
-        if(json === previousJSON)
+        if (json === previousJSON) {
+
             return;
 
+        }
 
 
         previousJSON = json;
@@ -202,19 +190,32 @@ async function updateGraveyard(){
 
 
         /*
-         * Apply the user's overlay settings.
+         * Apply color.
          */
 
         document.body.style.color =
             data.color;
 
 
+
+        /*
+         * Apply font.
+         */
+
         document.body.style.fontFamily =
-            "'" + data.font + "', sans-serif";
+            "'" +
+            data.font +
+            "', sans-serif";
 
 
 
-        document.getElementById("title").textContent =
+        /*
+         * Update title.
+         */
+
+        document.getElementById(
+            "title"
+        ).textContent =
             "☠ Graveyard (" +
             data.count +
             ") ☠";
@@ -227,22 +228,9 @@ async function updateGraveyard(){
             );
 
 
-        const list1 =
-            document.getElementById(
-                "list1"
-            );
-
-
-        const list2 =
-            document.getElementById(
-                "list2"
-            );
-
-
 
         /*
-         * Stop the animation while we
-         * rebuild the lists.
+         * Stop the old animation.
          */
 
         container.style.animation =
@@ -251,141 +239,190 @@ async function updateGraveyard(){
 
 
         /*
-         * Clear both lists.
+         * Clear everything.
          */
 
-        list1.innerHTML = "";
-
-        list2.innerHTML = "";
+        container.innerHTML = "";
 
 
 
         /*
-         * Build both lists.
+         * If there are no deaths.
          */
 
-        if(data.names.length === 0){
+        if (data.names.length === 0) {
 
 
-            addPokemon(
-                list1,
-                "Nobody has fallen... yet!"
+            const empty =
+                document.createElement(
+                    "div"
+                );
+
+
+            empty.className =
+                "pokemon";
+
+
+            empty.textContent =
+                "Nobody has fallen... yet!";
+
+
+            container.appendChild(
+                empty
             );
 
 
-            addPokemon(
-                list2,
-                "Nobody has fallen... yet!"
-            );
-
-        }
-        else{
-
-
-            data.names.forEach(function(name){
-
-                addPokemon(
-                    list1,
-                    name
-                );
-
-            });
-
-
-            data.names.forEach(function(name){
-
-                addPokemon(
-                    list2,
-                    name
-                );
-
-            });
+            return;
 
         }
 
 
 
         /*
-         * Wait for the browser to finish
-         * laying everything out.
+         * ------------------------------------------------
+         * BUILD ONE COMPLETE SEQUENCE
+         * ------------------------------------------------
          */
 
-        requestAnimationFrame(function(){
+        const sequence =
+            document.createElement(
+                "div"
+            );
+
+
+        sequence.id =
+            "sequence";
+
+
+        sequence.style.width =
+            "100%";
+
+
+
+        data.names.forEach(function(name) {
+
+
+            const div =
+                document.createElement(
+                    "div"
+                );
+
+
+            div.className =
+                "pokemon";
+
+
+            div.textContent =
+                "☠ " + name;
+
+
+            sequence.appendChild(
+                div
+            );
+
+
+        });
+
+
+
+        /*
+         * Add the first sequence.
+         */
+
+        container.appendChild(
+            sequence
+        );
+
+
+
+        /*
+         * Wait for the browser to calculate
+         * the actual height.
+         */
+
+        requestAnimationFrame(function() {
+
+
+            const sequenceHeight =
+                sequence.offsetHeight;
+
+
+            const graveyardHeight =
+                document.getElementById(
+                    "graveyard"
+                ).offsetHeight;
+
 
 
             /*
-             * Get the actual screen position
-             * of each list.
+             * We need enough copies to completely
+             * fill the screen while scrolling.
+             *
+             * For example, if the graveyard is
+             * 450px tall and the sequence is
+             * only 72px tall, we'll create
+             * enough copies to cover that 450px.
              */
 
-            const firstPosition =
-                list1.getBoundingClientRect();
-
-
-            const secondPosition =
-                list2.getBoundingClientRect();
+            const copiesNeeded =
+                Math.ceil(
+                    graveyardHeight /
+                    sequenceHeight
+                ) + 2;
 
 
 
             /*
-             * The exact distance between
-             * the beginning of list 1 and
-             * the beginning of list 2.
+             * Add additional copies.
              */
 
-            const distance =
-                secondPosition.top -
-                firstPosition.top;
+            for (
+                let i = 1;
+                i < copiesNeeded;
+                i++
+            ) {
+
+
+                const copy =
+                    sequence.cloneNode(
+                        true
+                    );
+
+
+                container.appendChild(
+                    copy
+                );
+
+            }
 
 
 
             /*
-             * Tell CSS the exact distance
-             * it needs to travel.
+             * The distance we need to travel
+             * is exactly ONE sequence.
              */
 
             container.style.setProperty(
                 "--scroll-distance",
-                distance + "px"
+                sequenceHeight + "px"
             );
 
 
 
             /*
-             * Choose the speed based on
-             * the amount of content.
+             * Scroll speed.
              *
-             * This is pixels per second.
+             * Increase this number to make
+             * the scrolling slower.
              */
 
-            const pixelsPerSecond = 35;
+            const pixelsPerSecond =
+                35;
 
 
             const duration =
-                distance /
+                sequenceHeight /
                 pixelsPerSecond;
-
-
-
-            /*
-             * Don't allow extremely short
-             * animations.
-             */
-
-            const finalDuration =
-                Math.max(
-                    15,
-                    duration
-                );
-
-
-
-            /*
-             * Force the browser to acknowledge
-             * the animation reset.
-             */
-
-            void container.offsetWidth;
 
 
 
@@ -393,9 +430,15 @@ async function updateGraveyard(){
              * Start the animation.
              */
 
+            void container.offsetWidth;
+
+
             container.style.animation =
                 "scrollUp " +
-                finalDuration +
+                Math.max(
+                    2,
+                    duration
+                ) +
                 "s linear infinite";
 
 
@@ -403,7 +446,7 @@ async function updateGraveyard(){
 
 
     }
-    catch(error){
+    catch (error) {
 
 
         console.error(
@@ -419,38 +462,6 @@ async function updateGraveyard(){
 
 
 /*
- * Helper function for creating
- * each Pokémon entry.
- */
-
-function addPokemon(
-    container,
-    name
-){
-
-    const div =
-        document.createElement(
-            "div"
-        );
-
-
-    div.className =
-        "pokemon";
-
-
-    div.textContent =
-        "☠ " + name;
-
-
-    container.appendChild(
-        div
-    );
-
-}
-
-
-
-/*
  * Initial load.
  */
 
@@ -459,8 +470,7 @@ updateGraveyard();
 
 
 /*
- * Check for new deaths every
- * two seconds.
+ * Check for changes every two seconds.
  */
 
 setInterval(
