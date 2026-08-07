@@ -11,31 +11,21 @@
 <style>
 
 body{
-
     margin:0;
     overflow:hidden;
     background:transparent;
-
 }
 
 #title{
-
     text-align:center;
-
     font-size:52px;
-
     margin-bottom:15px;
-
 }
 
 #graveyard{
-
     position:relative;
-
     width:100%;
-
     height:450px;
-
     overflow:hidden;
 
     mask-image:linear-gradient(
@@ -53,59 +43,50 @@ body{
         black 90%,
         transparent
     );
-
 }
 
 #scrollContainer{
-
     position:absolute;
-
     width:100%;
+    left:0;
+    top:0;
+}
 
+.list{
+    width:100%;
 }
 
 .pokemon{
-
     width:100%;
-
     text-align:center;
-
     font-size:42px;
-
     margin:18px 0;
-
 }
 
 @keyframes scrollUp{
 
     from{
-
-        transform:translateY(100%);
-
+        transform:translateY(0);
     }
 
     to{
-
-        transform:translateY(-100%);
-
+        transform:translateY(calc(-1 * var(--scroll-distance)));
     }
 
 }
-
 </style>
 
 </head>
 
 <body>
 
-<div id="title">
-Loading...
-</div>
+<div id="title">Loading...</div>
 
 <div id="graveyard">
-
-<div id="scrollContainer"></div>
-
+    <div id="scrollContainer">
+        <div id="list1"></div>
+        <div id="list2"></div>
+    </div>
 </div>
 
 <script>
@@ -115,6 +96,10 @@ const params = new URLSearchParams(window.location.search);
 const channel = params.get("channel");
 
 let previousJSON = "";
+
+async function updateGraveyard(){
+
+    let previousJSON = "";
 
 async function updateGraveyard(){
 
@@ -130,61 +115,63 @@ async function updateGraveyard(){
     previousJSON = json;
 
     document.body.style.color = data.color;
+    document.body.style.fontFamily = data.font + ", sans-serif";
 
-    document.body.style.fontFamily =
-        data.font + ", sans-serif";
-
-    document.getElementById("title").innerHTML =
+    document.getElementById("title").textContent =
         "☠ Graveyard (" + data.count + ") ☠";
 
-    const container =
-        document.getElementById("scrollContainer");
+    const list1 = document.getElementById("list1");
+    const list2 = document.getElementById("list2");
+    const container = document.getElementById("scrollContainer");
 
-    container.innerHTML = "";
+    list1.innerHTML = "";
+    list2.innerHTML = "";
 
     if(data.names.length === 0){
 
-        container.innerHTML =
+        list1.innerHTML =
             "<div class='pokemon'>Nobody has fallen... yet!</div>";
 
-        return;
+        list2.innerHTML = list1.innerHTML;
+
+    }
+    else{
+
+        data.names.forEach(function(name){
+
+            const div = document.createElement("div");
+
+            div.className = "pokemon";
+
+            div.textContent = "☠ " + name;
+
+            list1.appendChild(div);
+
+        });
+
+        list2.innerHTML = list1.innerHTML;
 
     }
 
-    data.names.forEach(function(name){
+    requestAnimationFrame(function(){
 
-        const div = document.createElement("div");
+        const distance = list1.offsetHeight;
 
-        div.className = "pokemon";
+        container.style.setProperty(
+            "--scroll-distance",
+            distance + "px"
+        );
 
-        div.textContent = "☠ " + name;
+        const speed = Math.max(15, distance / 40);
 
-        container.appendChild(div);
+        container.style.animation = "none";
 
-    });
+        void container.offsetWidth;
 
-    const spacer = document.createElement("div");
-
-    spacer.style.height = "250px";
-
-    container.appendChild(spacer);
-
-    data.names.forEach(function(name){
-
-        const div = document.createElement("div");
-
-        div.className = "pokemon";
-
-        div.textContent = "☠ " + name;
-
-        container.appendChild(div);
+        container.style.animation =
+            "scrollUp " + speed + "s linear infinite";
 
     });
-
-    const speed = Math.max(20, data.names.length * 3);
-
-    container.style.animation =
-        "scrollUp " + speed + "s linear infinite";
 
 }
 
