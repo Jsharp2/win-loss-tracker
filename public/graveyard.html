@@ -11,6 +11,10 @@
 
 <style>
 
+/* =========================
+   BODY
+   ========================= */
+
 body{
 
     margin:0;
@@ -21,7 +25,6 @@ body{
 
     font-family:Merienda,sans-serif;
 
-    /* Main neon glow */
     text-shadow:
         0 0 3px currentColor,
         0 0 6px currentColor,
@@ -91,6 +94,35 @@ body{
 
 
 /* =========================
+   NO DEATHS MESSAGE
+   ========================= */
+
+#noDeaths{
+
+    position:absolute;
+
+    top:50%;
+    left:0;
+
+    width:100%;
+
+    transform:translateY(-50%);
+
+    text-align:center;
+
+    font-size:42px;
+
+    text-shadow:
+        0 0 3px currentColor,
+        0 0 6px currentColor,
+        0 0 10px currentColor,
+        0 0 18px currentColor,
+        0 0 30px currentColor;
+
+}
+
+
+/* =========================
    SCROLLING LIST
    ========================= */
 
@@ -100,7 +132,6 @@ body{
 
     width:100%;
 
-    /* Important: start in a neutral position */
     transform:translateY(0);
 
 }
@@ -126,29 +157,6 @@ body{
         0 0 10px currentColor,
         0 0 18px currentColor,
         0 0 30px currentColor;
-
-}
-
-
-/* =========================
-   NO DEATHS MESSAGE
-   ========================= */
-
-.noDeaths{
-
-    position:absolute;
-
-    width:100%;
-
-    left:0;
-
-    top:50%;
-
-    transform:translateY(-50%);
-
-    margin:0;
-
-    text-align:center;
 
 }
 
@@ -180,14 +188,34 @@ body{
 
 <body>
 
+
+<!-- =========================
+     TITLE
+     ========================= -->
+
 <div id="title">
-Loading...
+☠ Graveyard ☠
 </div>
 
 
+<!-- =========================
+     GRAVEYARD
+     ========================= -->
+
 <div id="graveyard">
 
-<div id="scrollContainer"></div>
+
+    <!-- Displayed when there are no deaths -->
+
+    <div id="noDeaths">
+        Nobody has fallen... yet!
+    </div>
+
+
+    <!-- Scrolling Pokémon list -->
+
+    <div id="scrollContainer"></div>
+
 
 </div>
 
@@ -195,24 +223,43 @@ Loading...
 <script>
 
 
+// =========================
+// GET CHANNEL FROM URL
+// =========================
+
 const params =
-    new URLSearchParams(window.location.search);
+    new URLSearchParams(
+        window.location.search
+    );
 
 
 const channel =
     params.get("channel");
 
 
+// Used to prevent rebuilding
+// the overlay when nothing changed.
+
 let previousJSON = "";
 
+
+// =========================
+// UPDATE GRAVEYARD
+// =========================
 
 async function updateGraveyard(){
 
     try{
 
+
+        // =========================
+        // GET DATA
+        // =========================
+
         const response =
             await fetch(
-                "/shownuzdeaths/data?channel=" + channel
+                "/shownuzdeaths/data?channel=" +
+                channel
             );
 
 
@@ -224,8 +271,7 @@ async function updateGraveyard(){
             JSON.stringify(data);
 
 
-        // Nothing changed, so don't rebuild
-        // the graveyard or restart the animation.
+        // Nothing changed.
 
         if(json === previousJSON)
             return;
@@ -233,6 +279,10 @@ async function updateGraveyard(){
 
         previousJSON = json;
 
+
+        // =========================
+        // APPLY SETTINGS
+        // =========================
 
         document.body.style.color =
             data.color;
@@ -242,9 +292,19 @@ async function updateGraveyard(){
             data.font + ", sans-serif";
 
 
-        document.getElementById("title").innerHTML =
+        // =========================
+        // TITLE
+        // =========================
+
+        document.getElementById(
+            "title"
+        ).innerHTML =
             "☠ Graveyard ☠";
 
+
+        // =========================
+        // GET CONTAINERS
+        // =========================
 
         const container =
             document.getElementById(
@@ -252,34 +312,37 @@ async function updateGraveyard(){
             );
 
 
+        const noDeaths =
+            document.getElementById(
+                "noDeaths"
+            );
+
+
         // =========================
-        // RESET CONTAINER
+        // RESET SCROLL
         // =========================
 
         container.innerHTML = "";
 
-        container.style.animation = "none";
+        container.style.animation =
+            "none";
 
         container.style.transform =
             "translateY(0)";
 
 
         // =========================
-        // NOBODY HAS DIED
+        // NO DEATHS
         // =========================
 
         if(data.names.length === 0){
 
-            const message =
-                document.createElement("div");
 
-            message.className =
-                "pokemon noDeaths";
+            // Show centered message
 
-            message.textContent =
-                "Nobody has fallen... yet!";
+            noDeaths.style.display =
+                "block";
 
-            container.appendChild(message);
 
             return;
 
@@ -287,23 +350,42 @@ async function updateGraveyard(){
 
 
         // =========================
-        // BUILD FIRST LIST
+        // HIDE NO-DEATH MESSAGE
         // =========================
 
-        data.names.forEach(function(name){
+        noDeaths.style.display =
+            "none";
 
-            const div =
-                document.createElement("div");
 
-            div.className =
-                "pokemon";
+        // =========================
+        // FIRST LIST
+        // =========================
 
-            div.textContent =
-                "☠ " + name;
+        data.names.forEach(
+            function(name){
 
-            container.appendChild(div);
 
-        });
+                const div =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                div.className =
+                    "pokemon";
+
+
+                div.textContent =
+                    "☠ " + name;
+
+
+                container.appendChild(
+                    div
+                );
+
+
+            }
+        );
 
 
         // =========================
@@ -311,36 +393,53 @@ async function updateGraveyard(){
         // =========================
 
         const spacer =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
+
 
         spacer.style.height =
             "250px";
 
-        container.appendChild(spacer);
+
+        container.appendChild(
+            spacer
+        );
 
 
         // =========================
         // SECOND LIST
         // =========================
 
-        data.names.forEach(function(name){
+        data.names.forEach(
+            function(name){
 
-            const div =
-                document.createElement("div");
 
-            div.className =
-                "pokemon";
+                const div =
+                    document.createElement(
+                        "div"
+                    );
 
-            div.textContent =
-                "☠ " + name;
 
-            container.appendChild(div);
+                div.className =
+                    "pokemon";
 
-        });
+
+                div.textContent =
+                    "☠ " + name;
+
+
+                container.appendChild(
+                    div
+                );
+
+
+            }
+        );
 
 
         // =========================
-        // START SCROLLING
+        // SCROLL SPEED
         // =========================
 
         const speed =
@@ -350,10 +449,15 @@ async function updateGraveyard(){
             );
 
 
+        // =========================
+        // START SCROLLING
+        // =========================
+
         container.style.animation =
             "scrollUp " +
             speed +
             "s linear infinite";
+
 
     }
 
@@ -369,13 +473,23 @@ async function updateGraveyard(){
 }
 
 
+// =========================
+// INITIAL UPDATE
+// =========================
+
 updateGraveyard();
 
+
+// =========================
+// CHECK FOR CHANGES
+// EVERY 2 SECONDS
+// =========================
 
 setInterval(
     updateGraveyard,
     2000
 );
+
 
 </script>
 
