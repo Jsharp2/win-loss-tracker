@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 
 <html>
@@ -70,11 +71,6 @@ body{
 
     overflow:hidden;
 
-    /*
-        Fade the names in/out
-        at the top and bottom.
-    */
-
     mask-image:linear-gradient(
         to bottom,
         transparent,
@@ -104,6 +100,9 @@ body{
 
     width:100%;
 
+    /* Important: start in a neutral position */
+    transform:translateY(0);
+
 }
 
 
@@ -121,16 +120,35 @@ body{
 
     margin:18px 0;
 
-    /*
-        Neon glow around every name
-    */
-
     text-shadow:
         0 0 3px currentColor,
         0 0 6px currentColor,
         0 0 10px currentColor,
         0 0 18px currentColor,
         0 0 30px currentColor;
+
+}
+
+
+/* =========================
+   NO DEATHS MESSAGE
+   ========================= */
+
+.noDeaths{
+
+    position:absolute;
+
+    width:100%;
+
+    left:0;
+
+    top:50%;
+
+    transform:translateY(-50%);
+
+    margin:0;
+
+    text-align:center;
 
 }
 
@@ -159,11 +177,13 @@ body{
 
 </head>
 
+
 <body>
 
 <div id="title">
 Loading...
 </div>
+
 
 <div id="graveyard">
 
@@ -171,116 +191,196 @@ Loading...
 
 </div>
 
+
 <script>
 
-const params = new URLSearchParams(window.location.search);
 
-const channel = params.get("channel");
+const params =
+    new URLSearchParams(window.location.search);
+
+
+const channel =
+    params.get("channel");
+
 
 let previousJSON = "";
 
+
 async function updateGraveyard(){
 
-    const response = await fetch("/shownuzdeaths/data?channel=" + channel);
+    try{
 
-    const data = await response.json();
-
-    const json = JSON.stringify(data);
-
-    if(json === previousJSON)
-        return;
-
-    previousJSON = json;
-
-    document.body.style.color = data.color;
-
-    document.body.style.fontFamily =
-        data.font + ", sans-serif";
-
-    document.getElementById("title").innerHTML =
-        "☠ Graveyard ☠";
-
-    const container =
-    document.getElementById("scrollContainer");
-
-container.innerHTML = "";
+        const response =
+            await fetch(
+                "/shownuzdeaths/data?channel=" + channel
+            );
 
 
-// =========================
-// NOBODY HAS DIED
-// =========================
+        const data =
+            await response.json();
 
-if(data.names.length === 0){
 
-    // Stop any previous scrolling animation
-    container.style.animation = "none";
+        const json =
+            JSON.stringify(data);
 
-    container.innerHTML =
-        "<div class='pokemon'>Nobody has fallen... yet!</div>";
 
-    return;
+        // Nothing changed, so don't rebuild
+        // the graveyard or restart the animation.
+
+        if(json === previousJSON)
+            return;
+
+
+        previousJSON = json;
+
+
+        document.body.style.color =
+            data.color;
+
+
+        document.body.style.fontFamily =
+            data.font + ", sans-serif";
+
+
+        document.getElementById("title").innerHTML =
+            "☠ Graveyard ☠";
+
+
+        const container =
+            document.getElementById(
+                "scrollContainer"
+            );
+
+
+        // =========================
+        // RESET CONTAINER
+        // =========================
+
+        container.innerHTML = "";
+
+        container.style.animation = "none";
+
+        container.style.transform =
+            "translateY(0)";
+
+
+        // =========================
+        // NOBODY HAS DIED
+        // =========================
+
+        if(data.names.length === 0){
+
+            const message =
+                document.createElement("div");
+
+            message.className =
+                "pokemon noDeaths";
+
+            message.textContent =
+                "Nobody has fallen... yet!";
+
+            container.appendChild(message);
+
+            return;
+
+        }
+
+
+        // =========================
+        // BUILD FIRST LIST
+        // =========================
+
+        data.names.forEach(function(name){
+
+            const div =
+                document.createElement("div");
+
+            div.className =
+                "pokemon";
+
+            div.textContent =
+                "☠ " + name;
+
+            container.appendChild(div);
+
+        });
+
+
+        // =========================
+        // SPACER
+        // =========================
+
+        const spacer =
+            document.createElement("div");
+
+        spacer.style.height =
+            "250px";
+
+        container.appendChild(spacer);
+
+
+        // =========================
+        // SECOND LIST
+        // =========================
+
+        data.names.forEach(function(name){
+
+            const div =
+                document.createElement("div");
+
+            div.className =
+                "pokemon";
+
+            div.textContent =
+                "☠ " + name;
+
+            container.appendChild(div);
+
+        });
+
+
+        // =========================
+        // START SCROLLING
+        // =========================
+
+        const speed =
+            Math.max(
+                20,
+                data.names.length * 3
+            );
+
+
+        container.style.animation =
+            "scrollUp " +
+            speed +
+            "s linear infinite";
+
+    }
+
+    catch(error){
+
+        console.error(
+            "Failed to update graveyard:",
+            error
+        );
+
+    }
 
 }
 
-
-// =========================
-// BUILD GRAVEYARD
-// =========================
-
-data.names.forEach(function(name){
-
-    const div = document.createElement("div");
-
-    div.className = "pokemon";
-
-    div.textContent = "☠ " + name;
-
-    container.appendChild(div);
-
-});
-
-
-// Spacer between the two copies
-
-const spacer = document.createElement("div");
-
-spacer.style.height = "250px";
-
-container.appendChild(spacer);
-
-
-// Second copy for looping
-
-data.names.forEach(function(name){
-
-    const div = document.createElement("div");
-
-    div.className = "pokemon";
-
-    div.textContent = "☠ " + name;
-
-    container.appendChild(div);
-
-});
-
-
-// =========================
-// START SCROLLING
-// =========================
-
-const speed = Math.max(20, data.names.length * 3);
-
-container.style.animation =
-    "scrollUp " + speed + "s linear infinite";
-
-}
 
 updateGraveyard();
 
-setInterval(updateGraveyard,2000);
+
+setInterval(
+    updateGraveyard,
+    2000
+);
 
 </script>
+
 
 </body>
 
 </html>
+```
