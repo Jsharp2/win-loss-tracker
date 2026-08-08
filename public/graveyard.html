@@ -69,10 +69,13 @@ body{
     position:relative;
 
     width:100%;
-
     height:450px;
 
     overflow:hidden;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
 
     mask-image:linear-gradient(
         to bottom,
@@ -89,6 +92,35 @@ body{
         black 90%,
         transparent
     );
+
+}
+
+
+#noDeaths{
+
+    position:absolute;
+
+    left:0;
+    top:0;
+
+    width:100%;
+    height:100%;
+
+    display:flex;
+
+    align-items:center;
+    justify-content:center;
+
+    text-align:center;
+
+    font-size:42px;
+
+    text-shadow:
+        0 0 3px currentColor,
+        0 0 6px currentColor,
+        0 0 10px currentColor,
+        0 0 18px currentColor,
+        0 0 30px currentColor;
 
 }
 
