@@ -16,7 +16,24 @@ body{
     overflow:hidden;
     background:transparent;
 
+    color:white;
+
+    font-family:Merienda,sans-serif;
+
+    /* Main neon glow */
+    text-shadow:
+        0 0 3px currentColor,
+        0 0 6px currentColor,
+        0 0 12px currentColor,
+        0 0 20px currentColor,
+        0 0 35px currentColor;
+
 }
+
+
+/* =========================
+   GRAVEYARD TITLE
+   ========================= */
 
 #title{
 
@@ -26,7 +43,22 @@ body{
 
     margin-bottom:15px;
 
+    color:inherit;
+
+    text-shadow:
+        0 0 4px currentColor,
+        0 0 8px currentColor,
+        0 0 15px currentColor,
+        0 0 25px currentColor,
+        0 0 45px currentColor,
+        0 0 70px currentColor;
+
 }
+
+
+/* =========================
+   GRAVEYARD WINDOW
+   ========================= */
 
 #graveyard{
 
@@ -37,6 +69,11 @@ body{
     height:450px;
 
     overflow:hidden;
+
+    /*
+        Fade the names in/out
+        at the top and bottom.
+    */
 
     mask-image:linear-gradient(
         to bottom,
@@ -56,6 +93,11 @@ body{
 
 }
 
+
+/* =========================
+   SCROLLING LIST
+   ========================= */
+
 #scrollContainer{
 
     position:absolute;
@@ -63,6 +105,11 @@ body{
     width:100%;
 
 }
+
+
+/* =========================
+   POKEMON NAMES
+   ========================= */
 
 .pokemon{
 
@@ -74,7 +121,23 @@ body{
 
     margin:18px 0;
 
+    /*
+        Neon glow around every name
+    */
+
+    text-shadow:
+        0 0 3px currentColor,
+        0 0 6px currentColor,
+        0 0 10px currentColor,
+        0 0 18px currentColor,
+        0 0 30px currentColor;
+
 }
+
+
+/* =========================
+   SCROLL ANIMATION
+   ========================= */
 
 @keyframes scrollUp{
 
