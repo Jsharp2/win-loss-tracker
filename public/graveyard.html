@@ -198,56 +198,80 @@ async function updateGraveyard(){
         data.font + ", sans-serif";
 
     document.getElementById("title").innerHTML =
-        "☠ Graveyard (" + data.count + ") ☠";
+        "☠ Graveyard ☠";
 
     const container =
-        document.getElementById("scrollContainer");
+    document.getElementById("scrollContainer");
 
-    container.innerHTML = "";
+container.innerHTML = "";
 
-    if(data.names.length === 0){
 
-        container.innerHTML =
-            "<div class='pokemon'>Nobody has fallen... yet!</div>";
+// =========================
+// NOBODY HAS DIED
+// =========================
 
-        return;
+if(data.names.length === 0){
 
-    }
+    // Stop any previous scrolling animation
+    container.style.animation = "none";
 
-    data.names.forEach(function(name){
+    container.innerHTML =
+        "<div class='pokemon'>Nobody has fallen... yet!</div>";
 
-        const div = document.createElement("div");
+    return;
 
-        div.className = "pokemon";
+}
 
-        div.textContent = "☠ " + name;
 
-        container.appendChild(div);
+// =========================
+// BUILD GRAVEYARD
+// =========================
 
-    });
+data.names.forEach(function(name){
 
-    const spacer = document.createElement("div");
+    const div = document.createElement("div");
 
-    spacer.style.height = "250px";
+    div.className = "pokemon";
 
-    container.appendChild(spacer);
+    div.textContent = "☠ " + name;
 
-    data.names.forEach(function(name){
+    container.appendChild(div);
 
-        const div = document.createElement("div");
+});
 
-        div.className = "pokemon";
 
-        div.textContent = "☠ " + name;
+// Spacer between the two copies
 
-        container.appendChild(div);
+const spacer = document.createElement("div");
 
-    });
+spacer.style.height = "250px";
 
-    const speed = Math.max(20, data.names.length * 3);
+container.appendChild(spacer);
 
-    container.style.animation =
-        "scrollUp " + speed + "s linear infinite";
+
+// Second copy for looping
+
+data.names.forEach(function(name){
+
+    const div = document.createElement("div");
+
+    div.className = "pokemon";
+
+    div.textContent = "☠ " + name;
+
+    container.appendChild(div);
+
+});
+
+
+// =========================
+// START SCROLLING
+// =========================
+
+const speed = Math.max(20, data.names.length * 3);
+
+container.style.animation =
+    "scrollUp " + speed + "s linear infinite";
 
 }
 
