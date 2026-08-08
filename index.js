@@ -580,6 +580,51 @@ setInterval(updateGraveyard,2000);
 
 });;
 
+app.get("/shownuzlosses", (req, res) => {
+const channel = req.query.channel?.toLowerCase();
+  const raw = req.query.raw === "1";
+  if (!channel) return res.send("Missing ?channel=");
+
+  const data = getChannelData(channel);
+
+  if (raw) {
+    return res.send(`Record: ${data.wins}W - ${data.losses}L`);
+  }
+
+  const safeFont = encodeURIComponent(data.font);
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8" />
+      <meta http-equiv="refresh" content="10">
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          background-color: transparent;
+          font-size: 48px;
+          font-family: '${data.font}', sans-serif;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          color: ${data.color};
+          text-shadow:
+            0 0 5px ${data.color},
+            0 0 10px ${data.color},
+            0 0 20px ${data.color};
+        }
+      </style>
+      <link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
+    </head>
+    <body>
+      Runs Lost: ${data.runloss}
+    </body>
+    </html>
+  `);
+});
+
 // Show record overlay
 app.get("/record", (req, res) => {
   const channel = req.query.channel?.toLowerCase();
