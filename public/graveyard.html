@@ -1,620 +1,185 @@
 <!DOCTYPE html>
+
 <html>
 
 <head>
 
 <meta charset="UTF-8">
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+
 <style>
 
-html,
-body {
-
-    margin: 0;
-    padding: 0;
-
-    width: 100%;
-    height: 100%;
-
-    overflow: hidden;
-
-    background: transparent;
-
+body{
+    margin:0;
+    overflow:hidden;
+    background:transparent;
 }
 
-
-body {
-
-    color: white;
-
+#title{
+    text-align:center;
+    font-size:52px;
+    margin-bottom:15px;
 }
 
+#graveyard{
+    position:relative;
+    width:100%;
+    height:450px;
+    overflow:hidden;
 
-#title {
-
-    width: 100%;
-
-    text-align: center;
-
-    font-size: 52px;
-
-    margin-bottom: 15px;
-
-}
-
-
-#graveyard {
-
-    position: relative;
-
-    width: 100%;
-
-    height: 450px;
-
-    overflow: hidden;
-
-
-    /*
-     * Fade the names as they enter
-     * and leave the graveyard.
-     */
-
-    mask-image: linear-gradient(
+    mask-image:linear-gradient(
         to bottom,
-
-        transparent 0%,
-
+        transparent,
         black 10%,
-
         black 90%,
-
-        transparent 100%
+        transparent
     );
 
-    -webkit-mask-image: linear-gradient(
+    -webkit-mask-image:linear-gradient(
         to bottom,
-
-        transparent 0%,
-
+        transparent,
         black 10%,
-
         black 90%,
-
-        transparent 100%
+        transparent
     );
-
 }
 
-
-#scrollContainer {
-
-    position: absolute;
-
-    left: 0;
-
-    top: 0;
-
-    width: 100%;
-
-    will-change: transform;
-
+#scrollContainer{
+    position:absolute;
+    width:100%;
+    left:0;
+    top:0;
 }
 
-
-#list {
-
-    width: 100%;
-
+.list{
+    width:100%;
 }
 
-
-.pokemon {
-
-    width: 100%;
-
-    box-sizing: border-box;
-
-    padding: 18px 0;
-
-    text-align: center;
-
-    font-size: 42px;
-
-    white-space: nowrap;
-
+.pokemon{
+    width:100%;
+    text-align:center;
+    font-size:42px;
+    margin:18px 0;
 }
 
+@keyframes scrollUp{
 
+    from{
+        transform:translateY(0);
+    }
 
+    to{
+        transform:translateY(calc(-1 * var(--scroll-distance)));
+    }
+
+}
 </style>
 
 </head>
 
-
 <body>
 
-
-<div id="title">
-
-Loading...
-
-</div>
-
+<div id="title">Loading...</div>
 
 <div id="graveyard">
-
     <div id="scrollContainer">
-
-        <div id="list"></div>
-
+        <div id="list1"></div>
+        <div id="list2"></div>
     </div>
-
 </div>
-
-
 
 <script>
 
+const params = new URLSearchParams(window.location.search);
 
-const params =
-    new URLSearchParams(
-        window.location.search
-    );
+const channel = params.get("channel");
 
+let previousJSON = "";
 
-const channel =
-    params.get("channel");
+async function updateGraveyard(){
 
+    let previousJSON = "";
 
-const title =
-    document.getElementById(
-        "title"
-    );
+async function updateGraveyard(){
 
+    const response = await fetch("/shownuzdeaths/data?channel=" + channel);
 
-const graveyard =
-    document.getElementById(
-        "graveyard"
-    );
+    const data = await response.json();
 
+    const json = JSON.stringify(data);
 
-const scrollContainer =
-    document.getElementById(
-        "scrollContainer"
-    );
-
-
-const list =
-    document.getElementById(
-        "list"
-    );
-
-
-
-let names = [];
-
-let listHeight = 0;
-
-let scrollPosition = 0;
-
-let lastTime = null;
-
-let pixelsPerSecond = 35;
-
-
-
-/*
- * This function creates one complete
- * copy of the Pokémon list.
- */
-
-function buildList(
-    pokemonNames
-) {
-
-    list.innerHTML = "";
-
-
-    if (
-        pokemonNames.length === 0
-    ) {
-
-        const div =
-            document.createElement(
-                "div"
-            );
-
-
-        div.className =
-            "pokemon";
-
-
-        div.textContent =
-            "Nobody has fallen... yet!";
-
-
-        list.appendChild(
-            div
-        );
-
-
+    if(json === previousJSON)
         return;
 
+    previousJSON = json;
+
+    document.body.style.color = data.color;
+    document.body.style.fontFamily = data.font + ", sans-serif";
+
+    document.getElementById("title").textContent =
+        "☠ Graveyard (" + data.count + ") ☠";
+
+    const list1 = document.getElementById("list1");
+    const list2 = document.getElementById("list2");
+    const container = document.getElementById("scrollContainer");
+
+    list1.innerHTML = "";
+    list2.innerHTML = "";
+
+    if(data.names.length === 0){
+
+        list1.innerHTML =
+            "<div class='pokemon'>Nobody has fallen... yet!</div>";
+
+        list2.innerHTML = list1.innerHTML;
+
+    }
+    else{
+
+        data.names.forEach(function(name){
+
+            const div = document.createElement("div");
+
+            div.className = "pokemon";
+
+            div.textContent = "☠ " + name;
+
+            list1.appendChild(div);
+
+        });
+
+        list2.innerHTML = list1.innerHTML;
+
     }
 
+    requestAnimationFrame(function(){
 
-    pokemonNames.forEach(
-        function(name) {
+        const distance = list1.offsetHeight;
 
-            const div =
-                document.createElement(
-                    "div"
-                );
-
-
-            div.className =
-                "pokemon";
-
-
-            div.textContent =
-                "☠ " + name;
-
-
-            list.appendChild(
-                div
-            );
-
-        }
-    );
-
-}
-
-
-
-/*
- * Rebuild enough copies of the list
- * to always have content below the
- * viewport.
- */
-
-function rebuildScroll() {
-
-
-    /*
-     * Start with one copy.
-     */
-
-    scrollContainer.innerHTML = "";
-
-    scrollContainer.appendChild(
-        list
-    );
-
-
-    /*
-     * Force layout so we can determine
-     * the exact height of one list.
-     */
-
-    listHeight =
-        list.getBoundingClientRect().height;
-
-
-    if (listHeight <= 0)
-        return;
-
-
-    /*
-     * We need enough copies that there
-     * is ALWAYS another list below the
-     * currently visible one.
-     *
-     * This is especially important when
-     * there is only one Pokémon.
-     */
-
-    const viewportHeight =
-        graveyard.clientHeight;
-
-
-    const copiesNeeded =
-        Math.ceil(
-            viewportHeight /
-            listHeight
-        ) + 3;
-
-
-    for (
-        let i = 1;
-        i < copiesNeeded;
-        i++
-    ) {
-
-
-        const copy =
-            list.cloneNode(true);
-
-
-        scrollContainer.appendChild(
-            copy
+        container.style.setProperty(
+            "--scroll-distance",
+            distance + "px"
         );
 
-    }
+        const speed = Math.max(15, distance / 40);
 
+        container.style.animation = "none";
 
-    /*
-     * Start from the same position.
-     */
+        void container.offsetWidth;
 
-    scrollPosition = 0;
+        container.style.animation =
+            "scrollUp " + speed + "s linear infinite";
 
-
-    scrollContainer.style.transform =
-        "translateY(0px)";
+    });
 
 }
 
+updateGraveyard();
 
-
-/*
- * Apply the user's visual settings.
- */
-
-function applySettings(
-    data
-) {
-
-
-    document.body.style.color =
-        data.color;
-
-
-    document.body.style.fontFamily =
-        "'" +
-        data.font +
-        "', sans-serif";
-
-
-    document.body.style.textShadow =
-        "0 0 5px " +
-        data.color +
-        ", 0 0 10px " +
-        data.color +
-        ", 0 0 20px " +
-        data.color;
-
-
-    title.textContent =
-        "☠ Graveyard (" +
-        data.count +
-        ") ☠";
-
-}
-
-
-
-/*
- * Get the latest data.
- */
-
-async function loadData() {
-
-
-    try {
-
-
-        const response =
-            await fetch(
-                "/shownuzdeaths/data?channel=" +
-                encodeURIComponent(
-                    channel
-                ) +
-                "&t=" +
-                Date.now()
-            );
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                "Server returned " +
-                response.status
-            );
-
-        }
-
-
-        const data =
-            await response.json();
-
-
-        applySettings(
-            data
-        );
-
-
-        /*
-         * Check whether the list
-         * actually changed.
-         */
-
-        const newNames =
-            JSON.stringify(
-                data.names
-            );
-
-
-        const oldNames =
-            JSON.stringify(
-                names
-            );
-
-
-        if (
-            newNames !== oldNames
-        ) {
-
-
-            names =
-                data.names.slice();
-
-
-            buildList(
-                names
-            );
-
-
-            /*
-             * Give the browser a frame
-             * to calculate the new sizes.
-             */
-
-            requestAnimationFrame(
-                function() {
-
-                    rebuildScroll();
-
-                }
-            );
-
-        }
-
-    }
-    catch(error) {
-
-
-        console.error(
-            "Failed to load graveyard data:",
-            error
-        );
-
-    }
-
-}
-
-
-
-/*
- * --------------------------------------------------
- * CONTINUOUS SCROLL
- * --------------------------------------------------
- *
- * This is intentionally NOT a CSS animation.
- *
- * JavaScript moves the list every frame.
- *
- * When we've moved exactly one list height,
- * we subtract one list height.
- *
- * Because the next copy is identical,
- * the viewer sees absolutely no jump.
- */
-
-function animate(
-    timestamp
-) {
-
-
-    if (
-        lastTime === null
-    ) {
-
-        lastTime =
-            timestamp;
-
-    }
-
-
-    const deltaTime =
-        (
-            timestamp -
-            lastTime
-        ) / 1000;
-
-
-    lastTime =
-        timestamp;
-
-
-    if (
-        listHeight > 0
-    ) {
-
-
-        /*
-         * Move downward/upward by
-         * an exact number of pixels.
-         */
-
-        scrollPosition -=
-            pixelsPerSecond *
-            deltaTime;
-
-
-        /*
-         * Once we've moved exactly
-         * one complete list height,
-         * move the position forward
-         * by that same amount.
-         */
-
-        while (
-            scrollPosition <=
-            -listHeight
-        ) {
-
-            scrollPosition +=
-                listHeight;
-
-        }
-
-
-        scrollContainer.style.transform =
-            "translate3d(0, " +
-            scrollPosition +
-            "px, 0)";
-
-    }
-
-
-    requestAnimationFrame(
-        animate
-    );
-
-}
-
-
-
-/*
- * Load immediately.
- */
-
-loadData();
-
-
-
-/*
- * Check the server every two seconds.
- */
-
-setInterval(
-    loadData,
-    2000
-);
-
-
-
-/*
- * Start the continuous animation.
- */
-
-requestAnimationFrame(
-    animate
-);
-
+setInterval(updateGraveyard,2000);
 
 </script>
-
 
 </body>
 
