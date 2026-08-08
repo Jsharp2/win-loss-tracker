@@ -26,11 +26,9 @@ function saveTokens() {
   fs.writeFileSync(TOKEN_FILE, JSON.stringify(tokens, null, 2));
 }
 
+
 const app = express();
-
 app.use(cors());
-
-// Serve files from /public
 app.use(express.static(path.join(__dirname, "public")));
 
 let records = {};
@@ -46,14 +44,10 @@ try {
   records = {};
 }
 
-
 // Utility function
 function getChannelData(channel) {
-
   const name = channel.toLowerCase();
-
   if (!records[name]) {
-
     records[name] = {
       wins: 0,
       losses: 0,
@@ -66,43 +60,23 @@ function getChannelData(channel) {
       goodRez: 0,
       badRez: 0,
       percent: 0,
-      deadPokes: []
+      deadPokes : []
     };
-
   }
-
-  /*
-   * This is important for channels that already
-   * existed in records.json before deadPokes
-   * was added.
-   */
-  if (!Array.isArray(records[name].deadPokes)) {
-    records[name].deadPokes = [];
-  }
-
   return records[name];
 }
 
-
 // Save to records.json
 function saveRecords() {
-  fs.writeFileSync(
-    "./records.json",
-    JSON.stringify(records, null, 2)
-  );
+  fs.writeFileSync("./records.json", JSON.stringify(records, null, 2));
 }
 
-
-// Twitch callback
 app.get("/twitch/callback", async (req, res) => {
-
   const code = req.query.code;
 
-  if (!code)
-    return res.send("Missing code");
+  if (!code) return res.send("Missing code");
 
   try {
-
     const response = await axios.post(
       "https://id.twitch.tv/oauth2/token",
       null,
@@ -112,67 +86,39 @@ app.get("/twitch/callback", async (req, res) => {
           client_secret: TWITCH_CLIENT_SECRET,
           code: code,
           grant_type: "authorization_code",
-          redirect_uri:
-            "https://win-loss-tracker.onrender.com/twitch/callback"
+          redirect_uri: "https://win-loss-tracker.onrender.com/twitch/callback"
         }
       }
     );
 
-    tokens.access_token =
-      response.data.access_token;
-
-    tokens.refresh_token =
-      response.data.refresh_token;
+    tokens.access_token = response.data.access_token;
+    tokens.refresh_token = response.data.refresh_token;
 
     saveTokens();
 
     console.log("✅ Tokens saved!");
-
-    res.send(
-      "OAuth complete! You can close this."
-    );
+    res.send("OAuth complete! You can close this.");
 
   } catch (err) {
-
-    console.error(
-      err.response?.data || err.message
-    );
-
+    console.error(err.response?.data || err.message);
     res.send("OAuth failed");
-
   }
-
 });
-
 
 // Add win
 app.get("/addwin", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  if (!channel) return res.send("Missing ?channel=");
 
-  const channel =
-    req.query.channel?.toLowerCase();
-
-  if (!channel)
-    return res.send("Missing ?channel=");
-
-  const data =
-    getChannelData(channel);
-
+  const data = getChannelData(channel);
   data.wins++;
-
   saveRecords();
 
-  res.send(
-    `Added win for ${channel}. Wins: ${data.wins}, Losses: ${data.losses}`
-  );
-
+  res.send(`Added win for ${channel}. Wins: ${data.wins}, Losses: ${data.losses}`);
 });
 
-
-// Refresh Twitch token
 async function refreshAccessToken() {
-
   try {
-
     const response = await axios.post(
       "https://id.twitch.tv/oauth2/token",
       null,
@@ -186,14 +132,11 @@ async function refreshAccessToken() {
       }
     );
 
-    tokens.access_token =
-      response.data.access_token;
+    tokens.access_token = response.data.access_token;
 
+    // Twitch may rotate refresh token
     if (response.data.refresh_token) {
-
-      tokens.refresh_token =
-        response.data.refresh_token;
-
+      tokens.refresh_token = response.data.refresh_token;
     }
 
     saveTokens();
@@ -201,802 +144,720 @@ async function refreshAccessToken() {
     console.log("🔄 Token refreshed");
 
   } catch (err) {
-
-    console.error(
-      "❌ Refresh failed:",
-      err.response?.data || err.message
-    );
-
+    console.error("❌ Refresh failed:", err.response?.data || err.message);
   }
-
 }
 
-
 async function twitchRequest(config) {
-
   try {
-
     return await axios({
       ...config,
-
       headers: {
         ...config.headers,
-
-        "Client-ID":
-          TWITCH_CLIENT_ID,
-
-        "Authorization":
-          `Bearer ${tokens.access_token}`
+        "Client-ID": TWITCH_CLIENT_ID,
+        "Authorization": `Bearer ${tokens.access_token}`
       }
-
     });
 
   } catch (err) {
 
     if (err.response?.status === 401) {
-
-      console.log(
-        "⚠️ Token expired, refreshing..."
-      );
-
+      console.log("⚠️ Token expired, refreshing...");
       await refreshAccessToken();
 
+      // retry request
       return await axios({
         ...config,
-
         headers: {
           ...config.headers,
-
-          "Client-ID":
-            TWITCH_CLIENT_ID,
-
-          "Authorization":
-            `Bearer ${tokens.access_token}`
+          "Client-ID": TWITCH_CLIENT_ID,
+          "Authorization": `Bearer ${tokens.access_token}`
         }
-
       });
-
     }
 
     throw err;
-
   }
+}
+
+// Add loss
+app.get("/addloss", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  if (!channel) return res.send("Missing ?channel=");
+
+  const data = getChannelData(channel);
+  data.losses++;
+  saveRecords();
+
+  res.send(`Added loss for ${channel}. Wins: ${data.wins}, Losses: ${data.losses}`);
+});
+
+// Add death
+app.get("/adddeath", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  if (!channel) return res.send("Missing ?channel=");
+
+  const data = getChannelData(channel);
+  data.death++;
+  saveRecords();
+
+  res.send(`Added one death for ${channel}. Total deaths: ${data.death}`);
+});
+
+app.get("/adddeaths", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  const deathParam = req.query.death;
+
+  if (!channel || !deathParam) return res.send("Missing ?channel= or ?death=");
+
+  const deathsToAdd = parseInt(deathParam, 10);
+  if (isNaN(deathsToAdd) || deathsToAdd < 0) {
+    return res.send("Invalid death count. Must be a non-negative number.");
+  }
+
+  const data = getChannelData(channel);
+  data.death += deathsToAdd;
+  saveRecords();
+
+  res.send(`Added ${deathsToAdd} deaths to ${channel}. New Total: ${data.death}.`);
+});
+
+app.get("/setdeath", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  const death = req.query.death;
+  if (!channel || !death) return res.send("Missing ?channel= or ?death=");
+
+  const data = getChannelData(channel);
+  data.death = death;
+  saveRecords();
+
+  res.send(`Set deaths for ${channel} to ${death}`);
+});
+
+// Reset record
+app.get("/reset", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  if (!channel) return res.send("Missing ?channel=");
+
+  const data = getChannelData(channel);
+  data.wins = 0;
+  data.losses = 0;
+  saveRecords();
+
+  res.send(`${channel}'s record has been reset.`);
+});
+
+// Reset deaths
+app.get("/resetDeath", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  if (!channel) return res.send("Missing ?channel=");
+
+  const data = getChannelData(channel);
+  data.death = 0;
+  saveRecords();
+
+  res.send(`${channel}'s death counter has been reset.`);
+});
+
+// Set color
+app.get("/setcolor", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  const color = req.query.color;
+  if (!channel || !color) return res.send("Missing ?channel= or ?color=");
+
+  const data = getChannelData(channel);
+  data.color = color;
+  saveRecords();
+
+  res.send(`Set color for ${channel} to ${color}`);
+});
+
+
+app.get("/nuzloss", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  if (!channel) return res.send("Missing ?channel=");
+
+  const data = getChannelData(channel);
+
+  data.runloss += 1;
+  data.pokeloss = 0;
+  data.deadPokes = [];
+  saveRecords();
+
+  res.send(`Run Loss. F in Chat`);
+});
+
+app.get("/nuzlossReset", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  if (!channel) return res.send("Missing ?channel=");
+
+  const data = getChannelData(channel);
+
+  data.runloss = 0;
+  data.pokeloss = 0;
+  data.deadPokes = [];
+  saveRecords();
+
+  res.send('Reset Nuzlock Information');
+});
+
+app.get("/nuzdeaths", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  const death = req.query.death;
+  if (!channel) return res.send("Missing ?channel=");
+
+  const data = getChannelData(channel);
+  data.pokeloss += 1;
+
+  data.deadPokes.push(death);
+  saveRecords();
+
+  res.send(`RIP ${death}. o7`);
+});
+
+app.get("/nuzdeathsreset", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  const deadPoke = req.query.name;
+  if (!channel) return res.send("Missing ?channel=");
+
+  const data = getChannelData(channel);
+  data.pokeloss = 0;
+  data.deadPokes = [];
+  saveRecords();
+
+  res.send('Reset Nuzlock Information');
+});
+
+app.get("/shownuzdeaths/data", (req, res) => {
+
+    const channel = req.query.channel?.toLowerCase();
+
+    if (!channel)
+        return res.status(400).json({ error: "Missing ?channel=" });
+
+    const data = getChannelData(channel);
+
+    res.json({
+        count: data.pokeloss,
+        names: data.deadPokes,
+        color: data.color,
+        font: data.font
+    });
+
+});
+
+// Show record overlay
+app.get("/shownuzdeaths", (req, res) => {
+
+    const channel = req.query.channel?.toLowerCase();
+    const raw = req.query.raw === "1";
+
+    if (!channel)
+        return res.send("Missing ?channel=");
+
+    const data = getChannelData(channel);
+
+    if (raw) {
+        return res.send(data.deadPokes.join("\n"));
+    }
+
+    const safeFont = encodeURIComponent(data.font);
+
+    res.send(`
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+
+<style>
+
+body{
+    margin:0;
+    overflow:hidden;
+    background:transparent;
+    color:${data.color};
+    font-family:'${data.font}',sans-serif;
+    text-shadow:
+        0 0 5px ${data.color},
+        0 0 10px ${data.color},
+        0 0 20px ${data.color};
+}
+
+#title{
+
+    text-align:center;
+    font-size:52px;
+    margin-bottom:15px;
+
+}
+
+#graveyard{
+
+    position:relative;
+    width:100%;
+    height:450px;
+    overflow:hidden;
+
+    mask-image:linear-gradient(
+        to bottom,
+        transparent,
+        black 10%,
+        black 90%,
+        transparent
+    );
+
+    -webkit-mask-image:linear-gradient(
+        to bottom,
+        transparent,
+        black 10%,
+        black 90%,
+        transparent
+    );
+
+}
+
+#scrollContainer{
+
+    position:absolute;
+    width:100%;
+
+    animation:scrollUp 30s linear infinite;
+
+}
+
+.pokemon{
+
+    width:100%;
+    text-align:center;
+    font-size:42px;
+    margin:18px 0;
+
+}
+
+@keyframes scrollUp{
+
+    from{
+        transform:translateY(100%);
+    }
+
+    to{
+        transform:translateY(-100%);
+    }
+
+}
+
+</style>
+
+<link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div id="title">
+☠ Graveyard (${data.pokeloss}) ☠
+</div>
+
+<div id="graveyard">
+    <div id="scrollContainer"></div>
+</div>
+
+<script>
+
+const names = ${JSON.stringify(data.deadPokes)};
+
+const container = document.getElementById("scrollContainer");
+
+if(names.length === 0){
+
+    container.innerHTML =
+        "<div class='pokemon'>Nobody has fallen... yet!</div>";
+
+}
+else{
+
+    // First copy
+    names.forEach(function(name){
+
+        const div = document.createElement("div");
+
+        div.className = "pokemon";
+
+        div.textContent = "☠ " + name;
+
+        container.appendChild(div);
+
+    });
+
+    // Spacer
+    const spacer = document.createElement("div");
+
+    spacer.style.height = "250px";
+
+    container.appendChild(spacer);
+
+    // Second copy
+    names.forEach(function(name){
+
+        const div = document.createElement("div");
+
+        div.className = "pokemon";
+
+        div.textContent = "☠ " + name;
+
+        container.appendChild(div);
+
+    });
+
+    // Scroll slower as the list grows
+    const speed = Math.max(20, names.length * 3);
+
+    container.style.animationDuration = speed + "s";
+
+}
+
+</script>
+
+</body>
+
+</html>
+`);
+
+});
+
+// Show record overlay
+app.get("/shownuzdeaths", (req, res) => {
+
+    const channel = req.query.channel?.toLowerCase();
+
+    if (!channel)
+        return res.send("Missing ?channel=");
+
+
+    res.send(`
+
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+
+
+<style>
+
+body {
+
+    margin:0;
+    overflow:hidden;
+    background:transparent;
+
+    color:white;
+
+    font-family:Merienda, sans-serif;
+
+    text-shadow:
+        0 0 5px white,
+        0 0 10px white,
+        0 0 20px white;
 
 }
 
 
-// Add loss
-app.get("/addloss", (req, res) => {
+#title {
 
-  const channel =
-    req.query.channel?.toLowerCase();
+    text-align:center;
 
-  if (!channel)
-    return res.send("Missing ?channel=");
+    font-size:50px;
 
-  const data =
-    getChannelData(channel);
+    margin-bottom:10px;
 
-  data.losses++;
-
-  saveRecords();
-
-  res.send(
-    `Added loss for ${channel}. Wins: ${data.wins}, Losses: ${data.losses}`
-  );
-
-});
+}
 
 
-// Add death
-app.get("/adddeath", (req, res) => {
 
-  const channel =
-    req.query.channel?.toLowerCase();
+#graveyard {
 
-  if (!channel)
-    return res.send("Missing ?channel=");
+    height:300px;
 
-  const data =
-    getChannelData(channel);
+    overflow:hidden;
 
-  data.death++;
+    display:flex;
 
-  saveRecords();
+    justify-content:center;
 
-  res.send(
-    `Added one death for ${channel}. Total deaths: ${data.death}`
-  );
-
-});
+}
 
 
-// Add multiple deaths
-app.get("/adddeaths", (req, res) => {
 
-  const channel =
-    req.query.channel?.toLowerCase();
+#scrollContainer {
 
-  const deathParam =
-    req.query.death;
+    display:flex;
 
-  if (!channel || !deathParam)
-    return res.send(
-      "Missing ?channel= or ?death="
-    );
+    flex-direction:column;
 
-  const deathsToAdd =
-    parseInt(deathParam, 10);
+    align-items:center;
 
-  if (
-    isNaN(deathsToAdd) ||
-    deathsToAdd < 0
-  ) {
+    animation:scrollUp 20s linear infinite;
 
-    return res.send(
-      "Invalid death count. Must be a non-negative number."
-    );
-
-  }
-
-  const data =
-    getChannelData(channel);
-
-  data.death += deathsToAdd;
-
-  saveRecords();
-
-  res.send(
-    `Added ${deathsToAdd} deaths to ${channel}. New Total: ${data.death}.`
-  );
-
-});
+}
 
 
-// Set death
-app.get("/setdeath", (req, res) => {
 
-  const channel =
-    req.query.channel?.toLowerCase();
+.pokemon {
 
-  const death =
-    req.query.death;
+    font-size:42px;
 
-  if (!channel || !death)
-    return res.send(
-      "Missing ?channel= or ?death="
-    );
+    margin:15px 0;
 
-  const data =
-    getChannelData(channel);
-
-  data.death =
-    parseInt(death, 10);
-
-  saveRecords();
-
-  res.send(
-    `Set deaths for ${channel} to ${death}`
-  );
-
-});
+}
 
 
-// Reset record
-app.get("/reset", (req, res) => {
 
-  const channel =
-    req.query.channel?.toLowerCase();
-
-  if (!channel)
-    return res.send("Missing ?channel=");
-
-  const data =
-    getChannelData(channel);
-
-  data.wins = 0;
-  data.losses = 0;
-
-  saveRecords();
-
-  res.send(
-    `${channel}'s record has been reset.`
-  );
-
-});
+@keyframes scrollUp {
 
 
-// Reset deaths
-app.get("/resetDeath", (req, res) => {
+    from {
 
-  const channel =
-    req.query.channel?.toLowerCase();
+        transform:translateY(100%);
 
-  if (!channel)
-    return res.send("Missing ?channel=");
+    }
 
-  const data =
-    getChannelData(channel);
 
-  data.death = 0;
+    to {
 
-  saveRecords();
+        transform:translateY(-100%);
 
-  res.send(
-    `${channel}'s death counter has been reset.`
-  );
+    }
+
+}
+
+
+</style>
+
+
+<link href="https://fonts.googleapis.com/css2?family=Merienda&display=swap" rel="stylesheet">
+
+
+</head>
+
+
+<body>
+
+
+<div id="title">
+
+☠ Graveyard (0) ☠
+
+</div>
+
+
+<div id="graveyard">
+
+<div id="scrollContainer">
+
+<div class="pokemon">
+
+Loading...
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<script>
+
+
+const channel = "${channel}";
+
+
+async function updateGraveyard(){
+
+
+    try {
+
+
+        const response = await fetch(
+            "/shownuzdeaths/data?channel=" + channel
+        );
+
+
+        const data = await response.json();
+
+
+
+        document.body.style.color = data.color;
+
+
+
+        document.getElementById("title").innerHTML =
+            "☠ Graveyard (" + data.count + ") ☠";
+
+
+
+        const container =
+            document.getElementById("scrollContainer");
+
+
+
+        let html = "";
+
+data.names.forEach(function(name) {
+
+    html +=
+        "<div class='pokemon'>☠ " +
+        name +
+        "</div>";
 
 });
 
+if (html === "") {
 
-// Set color
-app.get("/setcolor", (req, res) => {
+    html =
+        "<div class='pokemon'>" +
+        "Nobody has fallen... yet!" +
+        "</div>";
 
-  const channel =
-    req.query.channel?.toLowerCase();
+}
 
-  const color =
-    req.query.color;
+// Duplicate the list for a seamless scroll
+container.innerHTML = html + html;
 
-  if (!channel || !color)
-    return res.send(
-      "Missing ?channel= or ?color="
-    );
 
-  const data =
-    getChannelData(channel);
 
-  data.color =
-    color;
+    }
 
-  saveRecords();
+    catch(error){
 
-  res.send(
-    `Set color for ${channel} to ${color}`
-  );
+        console.log(error);
 
-});
+    }
 
+}
 
-// Nuzlocke run loss
-app.get("/nuzloss", (req, res) => {
 
-  const channel =
-    req.query.channel?.toLowerCase();
 
-  if (!channel)
-    return res.send("Missing ?channel=");
+updateGraveyard();
 
-  const data =
-    getChannelData(channel);
 
-  data.runloss += 1;
+setInterval(updateGraveyard,2000);
 
-  data.pokeloss = 0;
 
-  data.deadPokes = [];
+</script>
 
-  saveRecords();
 
-  res.send(
-    "Run Loss. F in Chat"
-  );
+</body>
 
-});
+</html>
 
 
-// Reset Nuzlocke
-app.get("/nuzlossReset", (req, res) => {
+`);
 
-  const channel =
-    req.query.channel?.toLowerCase();
-
-  if (!channel)
-    return res.send("Missing ?channel=");
-
-  const data =
-    getChannelData(channel);
-
-  data.runloss = 0;
-
-  data.pokeloss = 0;
-
-  data.deadPokes = [];
-
-  saveRecords();
-
-  res.send(
-    "Reset Nuzlock Information"
-  );
-
-});
-
-
-// Add a Pokémon death
-app.get("/nuzdeaths", (req, res) => {
-
-  const channel =
-    req.query.channel?.toLowerCase();
-
-  const deadPoke =
-    req.query.name;
-
-  if (!channel)
-    return res.send(
-      "Missing ?channel="
-    );
-
-  if (!deadPoke)
-    return res.send(
-      "Missing ?name="
-    );
-
-
-  const data =
-    getChannelData(channel);
-
-
-  data.pokeloss += 1;
-
-
-  /*
-   * Save the Pokémon's name.
-   */
-  data.deadPokes.push(deadPoke);
-
-
-  saveRecords();
-
-
-  res.send(
-    `RIP ${deadPoke}. o7`
-  );
-
-});
-
-
-// Reset Nuzlocke deaths
-app.get("/nuzdeathsreset", (req, res) => {
-
-  const channel =
-    req.query.channel?.toLowerCase();
-
-  if (!channel)
-    return res.send(
-      "Missing ?channel="
-    );
-
-  const data =
-    getChannelData(channel);
-
-
-  data.pokeloss = 0;
-
-  data.deadPokes = [];
-
-
-  saveRecords();
-
-
-  res.send(
-    "Reset Nuzlock Information"
-  );
-
-});
-
-
-// Data endpoint for graveyard
-app.get("/shownuzdeaths/data", (req, res) => {
-
-  const channel =
-    req.query.channel?.toLowerCase();
-
-  if (!channel)
-    return res.status(400).json({
-      error: "Missing ?channel="
-    });
-
-
-  const data =
-    getChannelData(channel);
-
-
-  res.json({
-
-    count:
-      data.pokeloss,
-
-    names:
-      data.deadPokes,
-
-    color:
-      data.color,
-
-    font:
-      data.font
-
-  });
-
-});
-
-
-// Show graveyard page
-app.get("/shownuzdeaths", (req, res) => {
-
-  const channel =
-    req.query.channel?.toLowerCase();
-
-  const raw =
-    req.query.raw === "1";
-
-
-  if (!channel)
-    return res.send(
-      "Missing ?channel="
-    );
-
-
-  if (raw) {
-
-    const data =
-      getChannelData(channel);
-
-    return res.send(
-      data.deadPokes.join(" • ")
-    );
-
-  }
-
-
-  res.sendFile(
-    path.join(
-      __dirname,
-      "public",
-      "graveyard.html"
-    )
-  );
-
-});
-
-
-// Show Nuzlocke losses
-app.get("/shownuzlosses", (req, res) => {
-
-  const channel =
-    req.query.channel?.toLowerCase();
-
-  const raw =
-    req.query.raw === "1";
-
-  if (!channel)
-    return res.send(
-      "Missing ?channel="
-    );
-
-  const data =
-    getChannelData(channel);
-
-  if (raw) {
-
-    return res.send(
-      `Record: ${data.wins}W - ${data.losses}L`
-    );
-
-  }
-
-  const safeFont =
-    encodeURIComponent(data.font);
-
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-
-      <meta charset="UTF-8" />
-
-      <meta http-equiv="refresh" content="10">
-
-      <style>
-
-        body {
-
-          margin: 0;
-          padding: 0;
-
-          background-color: transparent;
-
-          font-size: 48px;
-
-          font-family:
-            '${data.font}',
-            sans-serif;
-
-          display: flex;
-
-          justify-content: center;
-
-          align-items: center;
-
-          height: 100vh;
-
-          color:
-            ${data.color};
-
-          text-shadow:
-            0 0 5px ${data.color},
-            0 0 10px ${data.color},
-            0 0 20px ${data.color};
-
-        }
-
-      </style>
-
-      <link
-        href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap"
-        rel="stylesheet"
-      >
-
-    </head>
-
-    <body>
-
-      Runs Lost: ${data.runloss}
-
-    </body>
-
-    </html>
-  `);
-
-});
-
-
-// Set font
-app.get("/setfont", (req, res) => {
-
-  const channel =
-    req.query.channel?.toLowerCase();
-
-  const font =
-    req.query.font;
-
-  if (!channel || !font)
-    return res.send(
-      "Missing ?channel= or ?font="
-    );
-
-  const data =
-    getChannelData(channel);
-
-  data.font =
-    font;
-
-  saveRecords();
-
-  res.send(
-    `Set font for ${channel} to ${font}`
-  );
-
-});
-
+});;
 
 // Show record overlay
 app.get("/record", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  const raw = req.query.raw === "1";
+  if (!channel) return res.send("Missing ?channel=");
 
-  const channel =
-    req.query.channel?.toLowerCase();
-
-  const raw =
-    req.query.raw === "1";
-
-  if (!channel)
-    return res.send(
-      "Missing ?channel="
-    );
-
-  const data =
-    getChannelData(channel);
+  const data = getChannelData(channel);
 
   if (raw) {
-
-    return res.send(
-      `Record: ${data.wins}W - ${data.losses}L`
-    );
-
+    return res.send(`Record: ${data.wins}W - ${data.losses}L`);
   }
 
-  const safeFont =
-    encodeURIComponent(data.font);
-
+  const safeFont = encodeURIComponent(data.font);
   res.send(`
     <!DOCTYPE html>
     <html>
-
     <head>
-
       <meta charset="UTF-8" />
-
       <meta http-equiv="refresh" content="10">
-
       <style>
-
         body {
-
           margin: 0;
           padding: 0;
-
           background-color: transparent;
-
           font-size: 48px;
-
-          font-family:
-            '${data.font}',
-            sans-serif;
-
+          font-family: '${data.font}', sans-serif;
           display: flex;
-
           justify-content: center;
-
           align-items: center;
-
           height: 100vh;
-
-          color:
-            ${data.color};
-
+          color: ${data.color};
           text-shadow:
             0 0 5px ${data.color},
             0 0 10px ${data.color},
             0 0 20px ${data.color};
-
         }
-
       </style>
-
-      <link
-        href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap"
-        rel="stylesheet"
-      >
-
+      <link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
     </head>
-
     <body>
-
-      Record:
-      ${data.wins}W -
-      ${data.losses}L
-
+      Record: ${data.wins}W - ${data.losses}L
     </body>
-
     </html>
   `);
-
 });
-
 
 // Show death overlay
 app.get("/showdeaths", (req, res) => {
+  const channel = req.query.channel?.toLowerCase();
+  const raw = req.query.raw === "1";
+  if (!channel) return res.send("Missing ?channel=");
 
-  const channel =
-    req.query.channel?.toLowerCase();
-
-  const raw =
-    req.query.raw === "1";
-
-  if (!channel)
-    return res.send(
-      "Missing ?channel="
-    );
-
-  const data =
-    getChannelData(channel);
+  const data = getChannelData(channel);
 
   if (raw) {
-
-    return res.send(
-      `Deaths: ${data.death}`
-    );
-
+    return res.send(`Deaths: ${data.death}`);
   }
 
-  const safeFont =
-    encodeURIComponent(data.font);
-
+  const safeFont = encodeURIComponent(data.font);
   res.send(`
     <!DOCTYPE html>
     <html>
-
     <head>
-
       <meta charset="UTF-8" />
-
       <meta http-equiv="refresh" content="10">
-
       <style>
-
         body {
-
           margin: 0;
           padding: 0;
-
           background-color: transparent;
-
           font-size: 48px;
-
-          font-family:
-            '${data.font}',
-            sans-serif;
-
+          font-family: '${data.font}', sans-serif;
           display: flex;
-
           justify-content: center;
-
           align-items: center;
-
           height: 100vh;
-
-          color:
-            ${data.color};
-
+          color: ${data.color};
           text-shadow:
             0 0 5px ${data.color},
             0 0 10px ${data.color},
             0 0 20px ${data.color};
-
         }
-
       </style>
-
-      <link
-        href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap"
-        rel="stylesheet"
-      >
-
+      <link href="https://fonts.googleapis.com/css2?family=${safeFont}&display=swap" rel="stylesheet">
     </head>
-
     <body>
-
       Deaths: ${data.death}
-
     </body>
-
     </html>
   `);
-
 });
-
-
 // Export data
 app.get("/export", (req, res) => {
-
-  res.setHeader(
-    "Content-Disposition",
-    "attachment; filename=records.json"
-  );
-
-  res.setHeader(
-    "Content-Type",
-    "application/json"
-  );
-
-  res.send(
-    JSON.stringify(
-      records,
-      null,
-      2
-    )
-  );
-
+  res.setHeader("Content-Disposition", "attachment; filename=records.json");
+  res.setHeader("Content-Type", "application/json");
+  res.send(JSON.stringify(records, null, 2));
 });
 
-
-const PORT =
-  process.env.PORT || 3000;
-
-
-app.listen(
-  PORT,
-  () =>
-    console.log(
-      `🚀 Tracker running on port ${PORT}`
-    )
-);
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 Tracker running on port ${PORT}`));
